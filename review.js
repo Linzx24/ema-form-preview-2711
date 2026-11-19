@@ -23,7 +23,7 @@ window.addEventListener('popstate',e=>{
  if(target==='result'&&page==='reading'){restoreResult();return}
  savedResult=null;
  if(target==='reading'&&state.surveyDetail){
-  page='result';show();
+  if(page!=='result'){page='result';show()}
   const card=state.surveyDetail.submission.recommendations.find(x=>x.cardId===e.state.cardId);
   if(card){openReading(card,true);return}
  }
