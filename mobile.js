@@ -341,24 +341,17 @@ function recommend(answers, selected, catalog, seen, ratings) {
       return `
         <section class="page questionnaire-page questionnaire-intro-page">
           <div class="questionnaire-topbar">
-            <button class="icon-btn" data-route="home">
-              <img src="./assets/icons/返回.svg" alt="返回" />
-            </button>
+            <span class="questionnaire-spacer"></span>
             <strong>EMA 问卷</strong>
             <span class="questionnaire-spacer"></span>
           </div>
           <div class="questionnaire-intro">
             <h2>您好，<br />欢迎进行每日问卷测评！</h2>
-            ${state.surveyMode === "trial" ? `<p class="questionnaire-intro-note">今日问卷 · ${getTodayDateKey()}（北京时间）</p>
-              <p>${state.surveyScheduleLoading ? "正在查看今日日程…" : state.surveyError ? "日程无法确认" :
-                state.surveySchedule ? escapeHtml(state.surveySchedule.templateName) + " · 自 " + escapeHtml(state.surveySchedule.effectiveDate) + " 生效" :
-                "今天没有安排问卷。"}</p>` : ""}
+            <p class="questionnaire-intro-note">甲方试填 · 请使用虚构答案。刷新或关闭页面会清除本次填写。</p>
             <p class="questionnaire-intro-note">包含情绪认知、情境社交与安全相关条目，约需几分钟。</p>
             <img class="questionnaire-hero" src="./assets/images/问卷调查-插图01.png" alt="问卷插图" />
             <p role="status">${escapeHtml(state.surveyError || state.surveyNotice)}</p>
-            <button class="questionnaire-primary" id="start-questionnaire" ${state.surveyBusy || state.surveyScheduleLoading ||
-              (state.surveyMode === "trial" && !state.surveySchedule && !state.surveyError) ? "disabled" : ""}>${state.surveyError ? "重新加载问卷" : "开始测评"}</button>
-            ${state.surveyMode === "trial" && !state.surveySchedule && !state.surveyError ? '<button id="survey-refresh-intro">重新查看日程</button>' : ""}
+            <button class="questionnaire-primary" id="start-questionnaire">${Object.values(state.answers).some(v => v !== '' && (!Array.isArray(v) || v.length)) ? '继续填写' : '开始测评'}</button>
           </div>
         </section>
       `;
@@ -640,7 +633,7 @@ function recommend(answers, selected, catalog, seen, ratings) {
       parts.push('<details class="survey-answer-group survey-contact"><summary>我想找人聊聊</summary>' +
         '<p>挑一个你愿意说心里话的人。如果一时不知道怎么开口，可以给对方发一句：</p>' +
         '<blockquote>你现在方便聊一会儿吗？我想找个人说说话。</blockquote>' +
-        '<button type="button" data-help-resources>查看其他求助方式</button></details>');
+        '</details>');
     }
     const answers = (summary.answers || []).filter(item => item.id !== "nssi_method" && !item.id?.endsWith("_note"));
     const feelings = new Set(["anxiety", "stress", "irritability", "sadness", "unease", "emptiness", "loneliness", "dysregulation", "rumination", "self_criticism"]);
@@ -667,7 +660,9 @@ function recommend(answers, selected, catalog, seen, ratings) {
       (card.explanation ? '<p>' + escapeHtml(card.explanation) + '</p>' : '') + '</div>';
     if (card.available !== true) return '<article class="survey-exercise-card" data-survey-card="' + identity +
       '">' + info + '<p role="status">当前不可用</p></article>';
-    return '<a class="survey-exercise-card" data-survey-card="' + identity + '" data-survey-open="' + identity +
-      '" href="#/content?item=' + encodeURIComponent(card.id) + '&amp;surveyCard=' + encodeURIComponent(card.cardId) +
-      '">' + info + '<span class="survey-open-label">打开练习 <span aria-hidden="true">↗</span></span></a>';
+    if (!canRead) return '<article class="survey-exercise-card">' + info +
+      '<p>请用完整试填链接阅读正文</p></article>';
+    return '<article class="survey-exercise-card" data-survey-card="' + identity + '">' + info +
+      '<button type="button" class="survey-open-label" data-survey-open="' + identity +
+      '" aria-label="打开练习：' + escapeHtml(card.title) + '">打开练习 ↗</button></article>';
   }
