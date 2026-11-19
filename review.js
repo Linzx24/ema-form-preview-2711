@@ -2,8 +2,8 @@
 const root=document.getElementById('screen');
 const data={questionnaire:frozenQuestions,questionnaireScaleMarks:[0,20,40,60,80,100]};
 const state={surveyMode:'trial',surveyBusy:false,surveyError:'',surveyNotice:'',questionnaireStarted:false,
-  surveyClaim:{versions:{rule:RULE_VERSION},previousReminderAt:null,exerciseContext:{needs:research.needs,choices}},
-  answers:createQuestionnaireAnswers(),questionnaireNotes:createQuestionnaireNotes(),exerciseChoices:{}};
+  surveyClaim:{versions:{rule:RULE_VERSION},previousReminderAt:null},
+  answers:createQuestionnaireAnswers(),questionnaireNotes:createQuestionnaireNotes()};
 const dialog=document.getElementById('dialog');
 function tell(title,message){
  dialog.querySelector('h2').textContent=title;dialog.querySelector('p').textContent=message;dialog.showModal();
@@ -69,8 +69,7 @@ function submit(){
  const result=validateAnswers(frozenQuestions,buildQuestionnaireSubmissionAnswers());
  if(result.errors.length){tell('请核对问卷','还有未完成或无效的回答。');return}
  const answers=result.answers;
- const choice=normalizeChoices(Object.fromEntries(activeContextNeeds().filter(id=>state.exerciseChoices[id]).map(id=>[id,state.exerciseChoices[id]])),answers);
- const matched=recommend(answers,choice,catalog,new Set(),new Map());
+ const matched=recommend(answers,{},catalog,new Set(),new Map());
  const safety=inspectSafety(answers,RULE_VERSION,null);
  const items=frozenQuestions.filter(q=>Object.hasOwn(answers,q.id)&&q.id!=='nssi_method').map(q=>({id:q.id,title:q.titleBy?.[answers.social_context]||q.title,value:answers[q.id]}));
  const id=++counter;
@@ -91,12 +90,11 @@ root.addEventListener('input',e=>{
  if(id){const v=t.value;state.answers[id]=v===''?'':Math.max(0,Math.min(100,Math.round(Number(v))));syncQuestionnaireSlider(id);updateSafety()}
  if(t.dataset.questionNote)state.questionnaireNotes[t.dataset.questionNote]=t.value;
 });
-root.addEventListener('change',e=>{if(e.target.dataset.surveyContext){state.surveyDetail=null;state.exerciseChoices[e.target.dataset.surveyContext]=e.target.value}});
 root.addEventListener('click',e=>{
  const b=e.target.closest('button,a,input');if(!b)return;
  if(b.id==='start-questionnaire'){state.surveyNotice='';navigate('form');return}
  if(b.id==='submit-questionnaire'){submit();return}
- if(b.id==='again'){trial=crypto.randomUUID();formScroll=0;state.answers=createQuestionnaireAnswers();state.questionnaireNotes=createQuestionnaireNotes();state.exerciseChoices={};state.surveyDetail=null;state.surveyNotice='';history.pushState({trial,view:'intro'},'');navigate('form');return}
+ if(b.id==='again'){trial=crypto.randomUUID();formScroll=0;state.answers=createQuestionnaireAnswers();state.questionnaireNotes=createQuestionnaireNotes();state.surveyDetail=null;state.surveyNotice='';history.pushState({trial,view:'intro'},'');navigate('form');return}
  if(b.hasAttribute('data-help-resources')){tell('可以怎样求助','如果此刻想找人陪你，可以联系一个你信任的人。可以直接发一句：“你现在方便聊一会儿吗？我想找个人说说话。”这份试填页没有接入项目的求助资源目录，也不会通知任何人。');return}
  if(b.dataset.route==='chat'){tell('对话支持','此公开试填页仅供查看问卷和推荐，未连接聊天服务。');return}
  if(b.dataset.route==='home'){history.back();return}

@@ -397,7 +397,6 @@ function recommend(answers, selected, catalog, seen, ratings) {
               ? renderEmaCrisisBanner(crisis)
               : ""
           }
-          ${state.surveyClaim?.exerciseContext ? '<div id="survey-context-options">' + renderContextOptions() + '</div>' : ''}
           </fieldset>
         </div>
         <div class="questionnaire-form-footer">
@@ -408,21 +407,6 @@ function recommend(answers, selected, catalog, seen, ratings) {
         </div>
       </section>
     `;
-  }
-  function activeContextNeeds() {
-    const spec = state.surveyClaim?.exerciseContext?.needs;
-    return spec ? spec.tieOrder.filter(id => state.answers[id] >= spec.minScore)
-      .sort((a,b) => state.answers[b]-state.answers[a]).slice(0,spec.maxNeeds) : [];
-  }
-  function renderContextOptions() {
-    const ids = activeContextNeeds();
-    if (!ids.length) return '';
-    return '<div class="ema-question"><h3>想补充一点吗？</h3><p>可以选择更贴近这次感受的情况，帮助匹配练习。也可以直接提交。</p>' +
-      ids.map(id => '<p><label>' + escapeHtml(data.questionnaire.find(q => q.id === id).title.replace(/^此刻[：:]\s*/,'')) +
-        ' <select style="max-width:100%" data-survey-context="' + escapeHtml(id) + '"><option value="">不补充</option>' +
-        Object.entries(state.surveyClaim.exerciseContext.choices[id]).map(([code,label]) =>
-          '<option value="' + escapeHtml(code) + '"' + (state.exerciseChoices?.[id] === code ? ' selected' : '') + '>' +
-          escapeHtml(label) + '</option>').join('') + '</select></label></p>').join('') + '</div>';
   }
   function renderQuestionnaireQuestion(question, index) {
     const value = state.answers[question.id];
@@ -541,10 +525,6 @@ function recommend(answers, selected, catalog, seen, ratings) {
     `;
   }
   function syncQuestionnaireSlider(questionId) {
-    const context = document.getElementById('survey-context-options');
-    if (context && [...context.querySelectorAll('select')].map(s => s.dataset.surveyContext).join() !== activeContextNeeds().join()) {
-      context.innerHTML = renderContextOptions();
-    }
     const rangeInput = root.querySelector(`[data-question-range="${questionId}"]`);
     const numberInput = root.querySelector(`[data-question-number="${questionId}"]`);
     if (!rangeInput) {
