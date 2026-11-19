@@ -69,7 +69,7 @@ function submit(){
  const result=validateAnswers(frozenQuestions,buildQuestionnaireSubmissionAnswers());
  if(result.errors.length){tell('请核对问卷','还有未完成或无效的回答。');return}
  const answers=result.answers;
- const matched=recommend(answers,{},catalog,new Set(),new Map());
+ const matched=recommend(answers,{},catalog,new Set(),questionnaireRatings());
  const safety=inspectSafety(answers,RULE_VERSION,null);
  const items=frozenQuestions.filter(q=>Object.hasOwn(answers,q.id)&&q.id!=='nssi_method').map(q=>({id:q.id,title:q.titleBy?.[answers.social_context]||q.title,value:answers[q.id]}));
  const id=++counter;

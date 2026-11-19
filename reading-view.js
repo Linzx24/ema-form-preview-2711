@@ -47,6 +47,27 @@
     }
     return `<p>${escapeHtml(text)}</p>`;
   }
+  function renderContentFeedbackPanel(item) {
+    const selected = item.feedback || "";
+    return `
+      <div class="content-feedback-panel">
+        <button data-exercise-complete ${item.completed ? "disabled" : ""}>${item.completed ? "已标记完成" : "标记练习已完成"}</button>
+        <p class="content-completion-note">是否完成，由你自己决定</p>
+        <strong>这次练习对你有帮助吗？</strong>
+        <div>
+          ${["有帮助", "一般", "没帮助", ""]
+            .map(
+              (label) => `
+                <button type="button" class="${selected && selected === label ? "active" : ""}" data-content-feedback="${label}" data-content-id="${item.id}" aria-pressed="${Boolean(selected) && selected === label}">${label || "撤销评价"}</button>
+              `
+            )
+            .join("")}
+        </div>
+        <span role="status" data-exercise-status></span>
+      </div>
+    `;
+  }
+
 function renderContentBackButton(){return '<button type="button" class="icon-btn" id="back-to-answers" aria-label="返回问卷结果"><img src="./assets/icons/返回.svg" alt="返回问卷"></button>';}
 function renderPartnerArticle(item){
 const articleCoverUrl="./assets/images/content-image-cover-clean.png",articleBlocks=getArticleBodyBlocks(item);
@@ -82,6 +103,7 @@ const articleCoverUrl="./assets/images/content-image-cover-clean.png",articleBlo
               <div class="content-article-scroll content-trial-article-body">
                 ${trialArticleBodyHtml}
               </div>
+              ${renderContentFeedbackPanel(item)}
 
             </article>
           </section>
