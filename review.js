@@ -46,6 +46,7 @@ function submit(){
  const items=frozenQuestions.filter(q=>Object.hasOwn(answers,q.id)&&q.id!=='nssi_method').map(q=>({id:q.id,title:q.titleBy?.[answers.social_context]||q.title,value:answers[q.id]}));
  const id=++counter;
  state.surveyDetail={submission:{id,source:'trial',createdAt:new Date().toISOString(),partnerMatching:true,
+  emptyReason:matched.candidateIds.length ? '根据这次填写的感受和情境，没有匹配到合适的练习。' : '你填写的情绪分项本次未达到练习推荐条件。',
   summary:{complete:true,showSupport:safety.safetyStatus==='triggered',previousReminderAt:null,answers:items},
   recommendations:matched.recommendations.map((r,i)=>{const item=catalog.find(x=>x.id===r.id);return {...r,mode:item.mode,duration:item.duration,cardId:id+':'+i,available:true}})}};
  page='result';show();root.scrollTop=0;
@@ -61,7 +62,7 @@ root.addEventListener('click',e=>{
  if(b.id==='start-questionnaire'){page='form';state.surveyNotice='';show();return}
  if(b.id==='submit-questionnaire'){submit();return}
  if(b.id==='again'){state.answers=createQuestionnaireAnswers();state.questionnaireNotes=createQuestionnaireNotes();state.exerciseChoices={};state.surveyDetail=null;state.surveyNotice='';page='form';show();return}
- if(b.hasAttribute('data-help-resources')){tell('求助资源','当前没有已确认的可用资源。');return}
+ if(b.hasAttribute('data-help-resources')){tell('可以怎样求助','如果此刻想找人陪你，可以联系一个你信任的人。可以直接发一句：“你现在方便聊一会儿吗？我想找个人说说话。”这份试填页没有接入项目的求助资源目录，也不会通知任何人。');return}
  if(b.dataset.route==='chat'){tell('对话支持','此公开试填页仅供查看问卷和推荐，未连接聊天服务。');return}
  if(b.dataset.route==='home'){if(page==='intro')tell('问卷试填','点击“开始测评”即可体验手机端问卷。');else{page='intro';show()}return}
  if(b.id==='back-to-answers'){history.back();return}

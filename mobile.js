@@ -303,8 +303,7 @@ function recommend(answers, selected, catalog, seen, ratings) {
         <p>${escapeHtml(crisis.copy.body)}</p>
 
         <div class="ema-crisis-actions">
-          <button type="button" class="ema-crisis-call-btn" data-help-resources>查看求助资源</button>
-          <button type="button" class="ema-crisis-chat-btn" data-route="chat">${escapeHtml(crisis.copy.action)}</button>
+          <button type="button" class="ema-crisis-call-btn" data-help-resources>查看求助方式</button>
         </div>
       </div>
     `;
@@ -382,7 +381,7 @@ function recommend(answers, selected, catalog, seen, ratings) {
         </div>
         <div class="questionnaire-form-body">
           <div class="questionnaire-form-intro">
-            ${state.surveyMode === "trial" ? `<button type="button" data-help-resources>求助资源</button><p>${escapeHtml(surveyTimeWindow(state.surveyClaim))}</p>` : ""}
+            ${state.surveyMode === "trial" ? `<button type="button" data-help-resources>求助方式</button><p>${escapeHtml(surveyTimeWindow(state.surveyClaim))}</p>` : ""}
             <h2>请根据您的实际情况回答以下问题，<br />感谢您的配合!</h2>
             <img class="questionnaire-corner-fairy" src="./assets/images/Group 2631.png" alt="装饰" />
           </div>
@@ -616,7 +615,7 @@ function recommend(answers, selected, catalog, seen, ratings) {
       '" data-survey-id="' + escapeHtml(row.id) + '"><header class="survey-review-heading"><span>本次填写</span><h1>谢谢你花时间记录自己的感受。</h1>',
       '<p>' + BeijingTime.format(row.createdAt) + '（北京时间）</p></header>'];
     if (row.source === "trial") {
-      if (summary.showSupport === true) parts.push('<aside class="survey-support"><h2>需要帮助时</h2><p>如果此刻想找人陪你，可以联系一个你信任的人，也可以在这里查看求助方式。</p><button type="button" data-help-resources>查看求助资源 <span aria-hidden="true">↗</span></button></aside>');
+      if (summary.showSupport === true) parts.push('<aside class="survey-support"><h2>需要帮助时</h2><p>如果此刻想找人陪你，可以联系一个你信任的人，也可以在这里查看求助方式。</p><button type="button" data-help-resources>查看求助方式 <span aria-hidden="true">↗</span></button></aside>');
       if (summary.showSupport == null || summary.complete !== true) parts.push('<p class="survey-review-note" role="status">本次判断未完成，以下仅展示已保存的回答。</p>');
     } else {
       parts.push('<aside class="survey-review-note"><p>这是一份旧版问卷，结果保留当时的记录，不代表你现在的状态。</p>');
@@ -630,11 +629,12 @@ function recommend(answers, selected, catalog, seen, ratings) {
         row.recommendations.map(renderSurveyExerciseCard).join("") + '</section>');
     }
     if (row.partnerMatching && summary.showSupport === false && !row.recommendations?.length)
-      parts.push('<p class="survey-review-note">这次没有匹配到可用的练习。</p>');
+      parts.push('<p class="survey-review-note">' + escapeHtml(row.emptyReason) + '</p>');
     if (row.source === "trial" && summary.complete === true && summary.showSupport === true) {
       const available = (row.recommendations || []).filter(card => card.cardId && card.available === true);
-      if (available.length || row.partnerMatching) parts.push('<details class="survey-answer-group survey-contact"><summary>我也想做个练习</summary>' +
-        (available.length ? available.map(renderSurveyExerciseCard).join("") : '<p>这次没有匹配到可用的练习。</p>') + '</details>');
+      if (available.length) parts.push('<details class="survey-answer-group survey-contact"><summary>我也想做个练习</summary>' +
+        available.map(renderSurveyExerciseCard).join("") + '</details>');
+      else if (row.partnerMatching) parts.push('<p class="survey-review-note">' + escapeHtml(row.emptyReason) + '</p>');
     }
     if (row.source === "trial" && summary.complete === true && summary.showSupport === false) {
       parts.push('<details class="survey-answer-group survey-contact"><summary>我想找人聊聊</summary>' +
