@@ -1,0 +1,84 @@
+/* 3B: the original article landscape is shared only by the library and reading page. */
+.intervention-library-page {
+  min-height: 100%; height: 100%; overflow-y: auto;
+  padding: calc(env(safe-area-inset-top, 0px) + 16px) 18px calc(env(safe-area-inset-bottom, 0px) + 28px);
+  color: #f6faf4;
+  background: linear-gradient(180deg, #173b3655, #102c2be6), url('./assets/images/content-image-cover-clean.png') center / cover no-repeat, #173b36;
+}
+.intervention-library-page::before { content: none; }
+.intervention-library-page .library-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 26px; }
+.intervention-library-page .library-header strong { color: #fff; font-size: 19px; }
+.intervention-library-page .library-header .icon-btn { position: static; background: #f0f5e9ed; }
+.library-intro { padding: 4px 4px 22px; }
+.library-intro > span { font-size: 12px; letter-spacing: 2px; color: #e1eee1; }
+.library-intro h1 { margin: 12px 0; color: #fff; font-size: 29px; line-height: 1.35; }
+.library-intro p { margin: 0; font-size: 14px; line-height: 1.8; color: #e3ece4; }
+.library-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.library-search { margin: 0 0 18px; }
+.library-search > div { display: flex; align-items: center; gap: 2px; padding: 4px 6px 4px 13px; border: 1px solid #ffffff38; border-radius: 16px; background: #173b36c7; }
+.library-search input { min-width: 0; width: 100%; min-height: 40px; border: 0; background: transparent; color: #fff; font: inherit; font-size: 14px; }
+.library-search input::placeholder { color: #dae5dc; }
+.library-search input::-webkit-search-cancel-button { display: none; }
+.library-search button { flex-shrink: 0; min-height: 40px; min-width: 36px; border: 0; border-radius: 10px; padding: 6px; background: transparent; color: #edf4e8; font: inherit; cursor: pointer; }
+.library-search [data-library-clear] { font-size: 22px; }
+.intervention-library-page .library-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; padding: 0; background: none; box-shadow: none; }
+.intervention-library-page .library-tab { flex: 0 0 auto; min-height: 38px; padding: 8px 13px; border: 1px solid #ffffff38; border-radius: 999px; background: #173b36b8; color: #f0f5ed; font-size: 13px; box-shadow: none; }
+.intervention-library-page .library-tab.active { color: #23453c; background: #e7eedc; border-color: #e7eedc; }
+.intervention-library-page .library-list { display: grid; gap: 14px; }
+.library-count { margin: 0 2px; color: #e0e9df; font-size: 12px; }
+.library-status { padding: 20px; border-radius: 18px; background: #173b36db; color: #fff; line-height: 1.8; }
+.intervention-library-page .therapy-card-full { display: block; min-height: 0; padding: 18px; border: 1px solid #ffffff30; border-radius: 22px; background: #173b36d9; box-shadow: 0 10px 28px #081d2320; color: #fff; overflow: hidden; }
+.intervention-library-page .therapy-card-full::before, .intervention-library-page .therapy-card-full::after { content: none; }
+.intervention-library-page .therapy-card-copy { position: static; width: auto; max-width: none; padding: 0; }
+.intervention-library-page .therapy-card-copy h3 { margin: 4px 38px 8px 0; color: #fff; font-size: 18px; line-height: 1.5; }
+.intervention-library-page .therapy-card-copy p { margin: 0 0 16px; color: #e0e9df; font-size: 13px; line-height: 1.8; }
+.library-card-art { height: 112px; margin: -8px 0 12px; }
+.library-card-art img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.library-format, .intervention-library-page .therapy-card-time { display: inline-block; position: static; margin: 0 10px 0 0; color: #e1ebde; font-size: 12px; }
+.library-format { padding: 4px 9px; border: 1px solid #ffffff38; border-radius: 999px; }
+.intervention-library-page .therapy-card-side { display: none; }
+.intervention-library-page .therapy-card-star { top: 12px; right: 12px; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; color: #edf4e9; background: #ffffff14; }
+.intervention-library-page .therapy-card-star.active { color: #23453c; background: #e7eedc; }
+.therapy-card-star svg, .content-trial-fav svg { width: 22px; height: 22px; }
+.therapy-card-star.active svg path, .content-trial-fav.active svg path { fill: currentColor; }
+.intervention-library-page button:disabled { opacity: .6; cursor: wait; }
+.intervention-library-page button:focus-visible, .intervention-library-page input:focus-visible, .exercise-preferences-dialog button:focus-visible { outline: 3px solid #f0d99e; outline-offset: 3px; }
+.intervention-library-page .therapy-card-open:focus-visible::after { outline-color: #f0d99e; outline-offset: -4px; }
+.exercise-choice-panel { margin-top: 18px; padding: 18px; border: 1px solid #ffffff30; border-radius: 20px; background: #173b36d9; }
+.exercise-choice-entry { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.exercise-choice-entry strong { font-size: 14px; }
+.exercise-choice-entry p { margin: 6px 0 0; color: #dae7dc; font-size: 12px; }
+.exercise-choice-panel button, .library-status button { min-height: 40px; padding: 8px 12px; border: 0; border-radius: 12px; background: #e7eedc; color: #23453c; font: inherit; font-size: 13px; cursor: pointer; }
+.exercise-choice-entry > button { flex-shrink: 0; }
+#exercise-choices:not(:empty) { margin-top: 14px; line-height: 1.8; }
+#exercise-choices button { margin: 4px 6px 4px 0; }
+.exercise-preferences-entry { margin-top: 14px; text-align: center; }
+.exercise-preferences-entry button { min-height: 40px; border: 0; background: transparent; color: #e4ede1; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+.library-footnote { margin: 8px 0 0; text-align: center; color: #dce8dc; font-size: 12px; }
+.exercise-preferences-dialog { width: min(360px, calc(100vw - 32px)); max-height: 85vh; overflow-y: auto; padding: 24px; border: 1px solid #afc1b3; border-radius: 22px; background: #edf2e8; color: #23453c; }
+.exercise-preferences-dialog::backdrop { background: #081d23a6; }
+.exercise-preferences-dialog h2 { margin: 0 0 12px; font-size: 21px; }
+.exercise-preferences-dialog p { line-height: 1.7; font-size: 14px; }
+.exercise-preferences-dialog button { display: block; width: 100%; min-height: 44px; margin-top: 10px; padding: 10px; border: 1px solid #a6bbae; border-radius: 12px; color: #23453c; background: #fff9; font: inherit; cursor: pointer; }
+.exercise-preferences-dialog [data-exercise-preferences-close] { background: #234b40; color: #fff; }
+.content-trial-article-page { padding-left: 18px; padding-right: 18px; }
+.content-trial-article-header, .content-trial-article-panel { border-radius: 22px; background: #173b36d9; border-color: #ffffff30; }
+.content-trial-article-header { padding: 22px; margin-bottom: 16px; }
+.content-trial-article-header h1 { font-size: 26px; line-height: 1.5; }
+.content-trial-article-panel { padding: 24px 22px; }
+.content-trial-article-body p { font-size: 15px; line-height: 2; }
+.content-trial-article-panel .content-feedback-panel { padding: 20px 0 0; border: 0; border-top: 1px solid #ffffff38; border-radius: 0; background: transparent; }
+.content-trial-article-panel .content-feedback-panel [data-exercise-complete] { width: 100%; min-height: 46px; background: #e7eedc; color: #23453c; border-radius: 13px; }
+.content-completion-note { margin: 8px 0 22px; text-align: center; font-size: 12px; }
+.content-trial-article-panel .content-feedback-panel strong { display: block; margin-bottom: 12px; }
+.content-trial-article-panel .content-feedback-panel button { min-height: 40px; border: 1px solid #ffffff38; border-radius: 12px; }
+.content-trial-article-panel .content-feedback-panel button.active { background: #e7eedc; color: #23453c; }
+@media (max-width: 370px) {
+  .intervention-library-page, .content-trial-article-page { padding-left: 14px; padding-right: 14px; }
+  .intervention-library-page .library-tab { padding: 8px 10px; }
+  .content-trial-article-panel { padding: 20px 18px; }
+}
+
+@media (min-width: 761px) {
+  .intervention-library-page, .content-trial-article-page { padding-top: 48px; }
+}

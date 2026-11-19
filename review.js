@@ -17,7 +17,6 @@ function show(){
   root.innerHTML=renderSurveyRecord({source:'trial',id:String(row.id)});
   const nav=root.querySelector('.survey-record-nav');nav.replaceChildren();
   const back=document.createElement('button');back.id='again';back.textContent='重新试填';nav.append(back);
-  for(const label of root.querySelectorAll('.survey-open-label'))label.textContent='推荐说明 ↗';
  }else{
   state.questionnaireStarted=page==='form';root.innerHTML=renderQuestionnaire();
   if(page==='intro')root.querySelector('.questionnaire-intro [role=status]').textContent='甲方试填 · 请使用虚构答案。填写后可查看回顾和推荐，答案仅在本页使用。';
@@ -65,10 +64,10 @@ root.addEventListener('click',e=>{
  if(b.hasAttribute('data-help-resources')){tell('求助资源','当前没有已确认的可用资源。');return}
  if(b.dataset.route==='chat'){tell('对话支持','此公开试填页仅供查看问卷和推荐，未连接聊天服务。');return}
  if(b.dataset.route==='home'){if(page==='intro')tell('问卷试填','点击“开始测评”即可体验手机端问卷。');else{page='intro';show()}return}
+ if(b.id==='back-to-answers'){history.back();return}
  if(b.dataset.surveyOpen){e.preventDefault();
   const r=state.surveyDetail.submission.recommendations.find(c=>c.cardId===b.dataset.surveyOpen);
-  const q=data.questionnaire.find(x=>x.id===r.needId);
-  tell(r.title,'本次分项「'+q.title.replace(/^此刻[：:]\s*我/,'我')+'」为 '+state.answers[r.needId]+' 分。'+(r.explanation?'补充的情境是「'+r.explanation+'」。':'')+'按交接包的适用条件与候选排序，本篇进入本次推荐。');return
+  if(r?.available)openReading(r);return
  }
  const single=b.dataset.questionChoice,multi=b.dataset.questionMulti;
  if(single||multi){const id=single||multi,v=b.dataset.option,old=state.answers[id],next=single?v:old.includes(v)?old.filter(x=>x!==v):[...old,v];
