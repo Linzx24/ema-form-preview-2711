@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; form-action 'none'; base-uri 'none'"><title>日常感受与情境问卷 · 试填</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f5ef;color:#253c36;font:16px/1.6 system-ui,"Microsoft YaHei",sans-serif}main{max-width:760px;margin:auto;padding:42px 20px 80px}h1{font-size:clamp(27px,6vw,42px);letter-spacing:-.04em;margin:0 0 8px}header p{margin:0;color:#51665d}nav{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0}a{color:#295b4b;text-underline-offset:4px}nav a{border:1px solid #b9c7bd;border-radius:24px;padding:5px 11px;text-decoration:none;background:white}h2{font-size:22px;margin:32px 0 8px}fieldset{margin:12px 0;padding:18px 20px 22px;background:#fffefa;border:0;border-radius:15px;min-width:0}legend{float:left;width:100%;font-weight:650;line-height:1.55;padding:0 0 12px}fieldset>div{clear:both}fieldset[hidden],label[hidden]{display:none}label.opt{display:inline-flex;align-items:center;gap:6px;margin:4px 16px 4px 0;min-height:35px}input,textarea,button{font:inherit;accent-color:#346752}input[type=range]{width:100%}input[type=number]{width:6em;padding:4px 8px}textarea{width:100%;padding:8px}.ends{display:flex;justify-content:space-between;gap:16px;color:#52645b;font-size:14px}button{background:#345f4e;color:white;border:0;border-radius:10px;padding:10px 20px;cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #a25232;outline-offset:3px}#status{font-weight:600}label.note{display:block}label.note[hidden]{display:none}footer{padding-top:15px}
+</style><main><header><h1>日常感受与情境问卷</h1><p>问卷试填版 · 可以用虚构答案体验选项和跳题。答案仅留在当前页面，刷新即清空。</p></header><nav aria-label="跳到模块"></nav><div id="questions"></div><footer><button type="button" id="finish">完成试填</button><p id="status" role="status"></p></footer></main>
+<script id="data" type="application/json">[{"id":"anxiety","module":"A","moduleTitle":"模块 A：情绪与认知","type":"slider","title":"此刻：我感到焦虑","minLabel":"完全没有（0）","maxLabel":"非常强烈（100）"},{"id":"stress","module":"A","type":"slider","title":"此刻：我感到压力","minLabel":"完全没有（0）","maxLabel":"非常强烈（100）"},{"id":"irritability","module":"A","type":"slider","title":"此刻：我感到烦躁","minLabel":"完全没有（0）","maxLabel":"非常强烈（100）"},{"id":"sadness","module":"A","type":"slider","title":"此刻：我感到悲伤","minLabel":"完全没有（0）","maxLabel":"非常强烈（100）"},{"id":"unease","module":"A","type":"slider","title":"此刻：我感到不安","minLabel":"完全没有（0）","maxLabel":"非常强烈（100）"},{"id":"joy","module":"A","type":"slider","title":"此刻：我感到愉快","minLabel":"完全没有（0）","maxLabel":"非常强烈（100）"},{"id":"relaxation","module":"A","type":"slider","title":"此刻：我感到放松","minLabel":"完全没有（0）","maxLabel":"非常强烈（100）"},{"id":"emptiness","module":"A","type":"slider","title":"此刻：我感到空虚","minLabel":"完全没有（0）","maxLabel":"非常强烈（100）"},{"id":"loneliness","module":"A","type":"slider","title":"此刻：我感到孤独","minLabel":"完全没有（0）","maxLabel":"非常强烈（100）"},{"id":"dysregulation","module":"A","type":"slider","title":"此刻：我的情绪让我难以承受","minLabel":"完全没有（0）","maxLabel":"非常强烈（100）"},{"id":"rumination","module":"A","type":"slider","title":"此刻：我反复思考同一个问题","minLabel":"完全没有（0）","maxLabel":"非常强烈（100）"},{"id":"self_criticism","module":"A","type":"slider","title":"此刻：我对自己感到失望","minLabel":"完全没有（0）","maxLabel":"非常强烈（100）"},{"id":"location","module":"B","moduleTitle":"模块 B：情境信息与社会评估","type":"single","title":"你在哪里？","options":["在家","在朋友或家人处","学校或工作场所","汽车、火车、公交车","其他室内","其他室外"]},{"id":"activity","module":"B","type":"single","title":"提醒前你在做什么？","options":["什么都不做","工作或学习","家务","交谈","主动休闲（如运动）","被动休闲（如看电视）","其他"],"noteOptions":["其他"],"notePlaceholder":"请简要描述你在做什么"},{"id":"activity_liking","module":"B","type":"slider","title":"我喜欢这个活动","minLabel":"完全不喜欢（0）","maxLabel":"非常喜欢（100）"},{"id":"social_context","module":"B","type":"single","title":"你是独自一人还是和他人在一起？","options":["独自一人","与他人共处","与他人线上联系"]},{"id":"social_companions","module":"B","type":"multi","title":"你和谁在一起 / 线上联系？","options":["伴侣","家人","朋友","同事","熟人","其他患者","陌生人"],"visibleWhen":{"id":"social_context","in":["与他人共处","与他人线上联系"]},"titleBy":{"与他人共处":"你和谁在一起？","与他人线上联系":"你和谁在线上联系？"}},{"id":"social_evaluation","module":"B","type":"slider","title":"我对当前社交情境的感受","minLabel":"完全没有（0）","maxLabel":"非常强烈（100）","titleBy":{"独自一人":"我喜欢独处","与他人共处":"我喜欢和这些人在一起","与他人线上联系":"我感觉与线上联系的人有联结"}},{"id":"nssi_thoughts","module":"C","moduleTitle":"模块 C：非自杀性自伤","type":"slider","title":"从上一次提醒到现在，你有没有想过故意伤害自己，但没有想结束自己的生命？","minLabel":"完全没有（0）","maxLabel":"非常强烈（100）"},{"id":"nssi_urge","module":"C","type":"slider","title":"此刻，你有多强烈的冲动想故意伤害自己，但没有想结束自己的生命？","minLabel":"没有（0）","maxLabel":"非常强烈（100）"},{"id":"nssi_behavior","module":"C","type":"single","title":"从上一次提醒到现在，你是否故意伤害过自己且没有自杀意图（例如切割、抓挠或击打自己）？","options":["否","是"]},{"id":"nssi_method","module":"C","type":"multi","title":"你是如何自伤的？","options":["切割或划刻","抓挠","击打","灼烧","咬伤","撞头","干扰伤口","其他方式"],"visibleWhen":{"id":"nssi_behavior","equals":"是"},"noteOptions":["其他方式"],"notePlaceholder":"请简要描述其他方式"},{"id":"nssi_resistance","module":"C","type":"slider","title":"此刻，你对抵抗非自杀性自伤的信心有多大？","minLabel":"完全没有（0）","maxLabel":"非常有信心（100）"},{"id":"suicide_thoughts","module":"S","moduleTitle":"自杀相关条目","type":"slider","title":"从上一次提醒到现在，你是否想过自杀？","minLabel":"完全没有（0）","maxLabel":"非常强烈（100）"},{"id":"suicide_urge","module":"S","type":"slider","title":"此刻，自杀的冲动有多强烈？","minLabel":"没有（0）","maxLabel":"非常强烈（100）"},{"id":"suicide_attempt","module":"S","type":"single","title":"从上一次提醒到现在，你是否有过自杀尝试？","options":["否","是"]},{"id":"suicide_resistance","module":"S","type":"slider","title":"此刻，你对抵抗自杀尝试的信心有多大？","minLabel":"完全没有（0）","maxLabel":"非常有信心（100）"}]</script>
+<script>
+const qs=JSON.parse(document.querySelector('#data').textContent);
+const values={}, rows=new Map(),groups=new Map();
+const el=(tag,text)=>{const node=document.createElement(tag);if(text!==undefined)node.textContent=text;return node};
+const status=document.querySelector('#status');
+function refresh(){
+ let n=0;status.textContent='';
+ for(const q of qs){
+  const row=rows.get(q.id), rule=q.visibleWhen;
+  row.field.hidden=!!rule&&!(rule.in?rule.in.includes(values[rule.id]):values[rule.id]===rule.equals);
+  if(row.field.hidden){delete values[q.id];for(const input of row.inputs){input.checked=false}if(row.note)row.note.value='';continue}
+  row.legend.textContent=(++n)+'. '+(q.titleBy?.[values.social_context]||q.title);
+  if(row.note){const selected=[].concat(values[q.id]??[]);row.note.parentElement.hidden=!q.noteOptions.some(o=>selected.includes(o));if(row.note.parentElement.hidden)row.note.value=''}
+ }
+}
+for(const q of qs){
+ if(!groups.has(q.module)){const section=el('section'),title=el('h2',q.moduleTitle);section.id='module-'+q.module;section.append(title);document.querySelector('#questions').append(section);groups.set(q.module,section);const link=el('a',q.moduleTitle.replace(/^模块 [A-Z]：/,''));link.href='#'+section.id;document.querySelector('nav').append(link)}
+ const field=el('fieldset'),legend=el('legend'),body=el('div');field.append(legend,body);groups.get(q.module).append(field);
+ const row={field,legend,inputs:[]};rows.set(q.id,row);
+ if(q.type==='slider'){
+  const num=el('input'),range=el('input'),ends=el('div'),lbl=el('label','分值 ');
+  num.type='number';num.placeholder='待作答';range.type='range';
+  for(const input of [num,range]){input.min=0;input.max=100;input.step=1}
+  range.value=0;range.setAttribute('aria-label',q.title);range.setAttribute('aria-valuetext','待作答');
+  function setValue(v){num.value=v;if(v!==''&&num.validity.valid){values[q.id]=Number(v);range.value=v;range.setAttribute('aria-valuetext',v)}else{delete values[q.id];range.setAttribute('aria-valuetext','待作答')}refresh()}
+  range.oninput=()=>setValue(range.value);range.onclick=()=>setValue(range.value);num.oninput=()=>setValue(num.value);
+  ends.className='ends';ends.append(el('span',q.minLabel),el('span',q.maxLabel));lbl.append(num);body.append(lbl,range,ends);row.inputs.push(num,range)
+ }else{
+  for(const option of q.options){const label=el('label'),input=el('input');label.className='opt';input.type=q.type==='multi'?'checkbox':'radio';input.name=q.id;input.value=option;label.append(input,document.createTextNode(option));body.append(label);row.inputs.push(input);
+  input.onchange=()=>{values[q.id]=q.type==='multi'?row.inputs.filter(x=>x.checked).map(x=>x.value):input.value;refresh()}}
+  if(q.noteOptions){const label=el('label',q.notePlaceholder),note=el('textarea');label.className='note';label.append(note);body.append(label);row.note=note;note.oninput=()=>{status.textContent=''}}
+ }
+}
+refresh();
+document.querySelector('#finish').onclick=()=>{
+ for(const q of qs){const r=rows.get(q.id);if(r.field.hidden)continue;
+  const v=values[q.id],noValue=v===undefined||(Array.isArray(v)&&!v.length),needNote=r.note&&!r.note.parentElement.hidden&&!r.note.value.trim();
+  if(noValue||needNote){status.textContent=needNote?'请补充所选选项的备注。':'请先回答：'+r.legend.textContent;
+   const target=needNote?r.note:r.inputs[0];target.setCustomValidity(status.textContent);target.reportValidity();target.setCustomValidity('');target.focus();return}
+ }
+ status.textContent='试填完成，谢谢你看完这份问卷。答案未上传。'
+};
+</script></html>
