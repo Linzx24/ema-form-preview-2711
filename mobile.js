@@ -128,7 +128,7 @@ function recommend(answers, selected, catalog, seen, ratings) {
     const pool = pools.get(row.need);
     const item = items.get(row.id);
     if (!pool || !item?.needIds.includes(row.need) || !selectable(row) || seen.has(row.id) ||
-        (row.codes.length && !row.codes.includes(selected[row.need]))) continue;
+        (!row.questionnaireBasic && !row.codes.includes(selected[row.need]))) continue;
     const labels = (ratings.get(row.id) || []).slice(0,research.feedbackMaximumSamples);
     const helpful = labels.filter(x => x === '有帮助').length;
     const unhelpful = labels.filter(x => x === '没帮助').length;

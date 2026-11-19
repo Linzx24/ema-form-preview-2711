@@ -74,7 +74,7 @@ function submit(){
  const items=frozenQuestions.filter(q=>Object.hasOwn(answers,q.id)&&q.id!=='nssi_method').map(q=>({id:q.id,title:q.titleBy?.[answers.social_context]||q.title,value:answers[q.id]}));
  const id=++counter;
  state.surveyDetail={submission:{id,source:'trial',createdAt:new Date().toISOString(),partnerMatching:true,
-  emptyReason:matched.candidateIds.length ? '根据这次填写的感受和情境，没有匹配到合适的练习。' :
+  emptyReason:matched.candidateIds.length ? '这次填写的分项已达到匹配门槛，暂无可直接推荐的基础练习。' :
    '这次十项感受中最高为 '+Math.max(...research.needs.tieOrder.map(id=>answers[id]))+' 分。单项达到 '+research.needs.minScore+' 分才会匹配练习。',
   summary:{complete:true,showSupport:safety.safetyStatus==='triggered',previousReminderAt:null,answers:items},
   recommendations:matched.recommendations.map((r,i)=>{const item=catalog.find(x=>x.id===r.id);return {...r,mode:item.mode,duration:item.duration,cardId:id+':'+i,available:true}})}};
