@@ -81,6 +81,7 @@ function submit(){
  formScroll=root.querySelector('.questionnaire-form-body').scrollTop;navigate('result');root.scrollTop=0;
 }
 root.addEventListener('input',e=>{
+ if(page!=='form')return;
  state.surveyDetail=null;
  const t=e.target,id=t.dataset.questionRange||t.dataset.questionNumber;
  const block=t.closest('[data-question-block]');

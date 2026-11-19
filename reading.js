@@ -61,6 +61,7 @@ async function openReading(card,forward=false){
   savedResult={nodes:[...root.childNodes],scroll:record.scrollTop,cardId:card.cardId};
   if(!forward)history.pushState({trial,view:'reading',cardId:card.cardId},'');
   page='reading';root.innerHTML=html;root.scrollTop=0;
+  attachExerciseWorksheet(root,card.id,card.worksheetDrafts??=new Map());
   card.openedAt??=Date.now();bindReadingFeedback(card);
   const title=root.querySelector('h1');title.tabIndex=-1;title.focus({preventScroll:true});
  }catch{if(attempt===readingRequest && page==='result')tell('正文未能打开','本篇练习未能载入，你可以返回查看其他推荐。')}

@@ -82,3 +82,12 @@
 @media (min-width: 761px) {
   .intervention-library-page, .content-trial-article-page { padding-top: 48px; }
 }
+
+.content-trial-article-body .exercise-written-answer {
+  display: block; box-sizing: border-box; width: 100%; min-height: 6em;
+  margin: .4rem 0 1.3rem; padding: .75rem .9rem; border: 1px solid #a5b6ad;
+  border-radius: 12px; background: #f3f6ef; color: #253d35;
+  font: inherit; font-size: 1rem; line-height: 1.55; resize: vertical;
+}
+.exercise-written-answer::placeholder { color: #53695f; }
+.exercise-written-answer:focus-visible { outline: 3px solid #a9d9c1; outline-offset: 2px; }
