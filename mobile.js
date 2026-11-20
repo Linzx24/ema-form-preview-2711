@@ -673,7 +673,7 @@ function recommend(answers, selected, catalog, seen, ratings, seed = '') {
     const renderAnswer = item => {
       const value = Array.isArray(item.value) ? item.value.join("、") : item.value;
       const numeric = typeof value === "number" && Number.isFinite(value);
-      return '<div class="history-summary-row"><span>' + escapeHtml(feelings.has(item.id) || positives.has(item.id) ? item.title.replace(/^此刻[：:]\s*/, "") : item.title) + '</span><strong>' +
+      return '<div class="history-summary-row ' + (numeric ? 'answer-number' : 'answer-text') + '"><span>' + escapeHtml(feelings.has(item.id) || positives.has(item.id) ? item.title.replace(/^此刻[：:]\s*/, "") : item.title) + '</span><strong>' +
         escapeHtml(value ?? "未记录") + (numeric ? '<small> / 100</small>' : '') + '</strong></div>';
     };
     for (const [title, ids] of [["当时的感受", feelings], ["愉快与放松", positives]]) {

@@ -28,6 +28,7 @@ function bindReadingFeedback(card){
  panel.addEventListener('click',event=>{
   const button=event.target.closest('button');
   if(!button)return;
+  if(button.hasAttribute('data-content-duration')) {card.durationFeedback=selectReadingDuration(button);return;}
   const status=panel.querySelector('[data-exercise-status]');
   if(button.hasAttribute('data-exercise-complete')){
    card.completed=true;button.disabled=true;button.textContent='已标记完成';status.textContent='';return;
@@ -77,7 +78,6 @@ async function openReading(card,forward=false){
   page='reading';root.innerHTML=html;root.scrollTop=0;
   attachExerciseWorksheet(root,card.id,card.worksheetDrafts??=new Map());
   card.openedAt??=Date.now();rememberQuestionnaireShown(card);bindReadingFeedback(card);
-  root.querySelector('[data-content-duration]')?.addEventListener('change',event=>{card.durationFeedback=event.target.value;});
   root.querySelector('[data-content-note]')?.addEventListener('input',event=>{card.jot=event.target.value;});
   const title=root.querySelector('h1');title.tabIndex=-1;title.focus({preventScroll:true});
  }catch{if(attempt===readingRequest && page==='result')tell('正文未能打开','本篇练习未能载入，你可以返回查看其他推荐。')}

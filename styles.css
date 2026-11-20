@@ -6697,7 +6697,7 @@ html.is-native-webview .home-card-wide[data-tone="mint"] .home-card-copy {
 .survey-record-page .history-summary-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--ema-line); }
 .survey-record-page .history-summary-row:last-child { border: 0; padding-bottom: 0; }
 .survey-record-page .history-summary-row > span { min-width: 0; font-size: 15px; overflow-wrap: anywhere; }
-.survey-record-page .history-summary-row strong { max-width: 45%; overflow-wrap: anywhere; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.survey-record-page .history-summary-row strong { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .survey-record-page .history-summary-row small, .survey-group-caption, .survey-other-answers summary span { color: var(--ema-muted); font-size: 13px; font-weight: 400; }
 .survey-support p, .survey-contact p { font-size: 14px; line-height: 1.65; }
 .survey-contact blockquote { margin: 12px 0; padding-inline-start: 12px; border-inline-start: 3px solid var(--ema-brand); }
@@ -6839,7 +6839,17 @@ details.survey-answer-group { padding-block: 6px; }
 }
 .questionnaire-topbar .icon-btn img, .content-trial-article-topbar .icon-btn img { filter: brightness(0) invert(1); }
 
-.survey-record-page .history-summary-row strong { color: var(--ema-ink); }
+.survey-record-page .answer-number strong { color: var(--ema-ink); white-space: nowrap; }
+.survey-record-page .answer-text { flex-wrap: wrap; row-gap: 4px; }
+.survey-record-page .answer-text > span { flex: 1 1 min(40%, 10em); text-wrap: pretty; }
+.survey-record-page .answer-text > strong {
+  flex: 0 0 auto; width: max-content; max-width: 100%; text-align: left; color: #1e332c;
+  font-size: 14px; font-weight: 500; line-height: 1.65; line-break: strict; text-wrap: pretty; overflow-wrap: anywhere;
+}
+:is(.questionnaire-page,.survey-record-page,.content-trial-article-page) :is(h1,h2,h3) { line-break: strict; text-wrap: balance; }
+.questionnaire-intro-note, .questionnaire-form-intro p, .questionnaire-choice-item span, .survey-exercise-card h3 { line-break: strict; text-wrap: pretty; }
+.survey-open-label { white-space: nowrap; }
+
 .survey-exercise-card p { color: var(--ema-muted); }
 .survey-open-label { padding: 8px 12px; border: 0; border-radius: 99px; background: var(--ema-wash); color: var(--ema-on-wash); font-size: 14px; }
 :is(.questionnaire-page, .survey-record-page, .content-trial-article-page) :is(button,a,summary,input,select,textarea):focus-visible {
