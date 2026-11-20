@@ -26,6 +26,7 @@
 })(globalThis);
 
 const {research,choices,relations,catalog,questions:frozenQuestions}=window.previewInstrument;
+const selfGuided=new Set(window.previewInstrument.selfGuidedIds);
 const RULE_VERSION = '2C-b-local-E1-v1';
 
 const safetyFields = [
@@ -36,16 +37,13 @@ const safetyFields = [
   ['suicide_urge', 'suicide', 'now', 60],
   ['suicide_attempt', 'suicide', 'since_reminder', '是'],
 ];
-function inspectSafety(answers, ruleVersion, previousReminderAt) {
-  if (ruleVersion !== RULE_VERSION) {
-    return { safetyStatus: 'unknown', alert: null, safetyEvidence: [] };
-  }
+function inspectSafety(answers, ruleVersion, previousReminderAt, questions = frozenQuestions) {
   const evidence = [];
   for (const [id, channel, timeWindow, threshold] of safetyFields) {
     const value = answers[id];
     const behavior = threshold === '是';
     if (behavior ? value !== threshold : !(Number.isFinite(value) && value >= threshold && value <= 100)) continue;
-    const title = frozenQuestions.find((q) => q.id === id).title;
+    const title = questions.find((q) => q.id === id).title;
     evidence.push({
       id, title, channel, timeWindow, value, alert: behavior ? 'urgent' : 'high',
       ...(timeWindow === 'since_reminder' && { previousReminderAt }),
@@ -86,7 +84,7 @@ function validateAnswers(questions, raw) {
     if (q.noteOptions?.some((option) => selected.includes(option))) {
       const noteKey = q.id + '_note';
       if (typeof raw[noteKey] === 'string' && raw[noteKey].trim()) answers[noteKey] = raw[noteKey].trim();
-      else errors.push({ questionId: q.id, code: 'OTHER_NOTE_REQUIRED' });
+      else if (raw[noteKey] != null && typeof raw[noteKey] !== 'string') errors.push({ questionId: q.id, code: 'INVALID_VALUE' });
     }
   }
   return { answers, errors };
@@ -120,15 +118,19 @@ function normalizeChoices(raw, answers) {
   }
   return raw;
 }
-function recommend(answers, selected, catalog, seen, ratings) {
+function tieOffset(seed, count) {
+  let value = 0;
+  for (const char of String(seed)) value = (Math.imul(value, 31) + char.charCodeAt(0)) >>> 0;
+  return value % count;
+}
+function recommend(answers, selected, catalog, seen, ratings, seed = '') {
   const candidateIds = needs(answers);
   const items = new Map(catalog.map(item => [item.id,item]));
   const pools = new Map(candidateIds.map(id => [id,[]]));
   for (const row of relations) {
     const pool = pools.get(row.need);
     const item = items.get(row.id);
-    if (!pool || !item?.needIds.includes(row.need) || !selectable(row) || seen.has(row.id) ||
-        (!row.questionnaireBasic && !row.codes.includes(selected[row.need]))) continue;
+    if (!pool || !item?.needIds.includes(row.need) || !selectable(row) || seen.has(row.id)) continue;
     const labels = (ratings.get(row.id) || []).slice(0,research.feedbackMaximumSamples);
     const helpful = labels.filter(x => x === '有帮助').length;
     const unhelpful = labels.filter(x => x === '没帮助').length;
@@ -136,20 +138,32 @@ function recommend(answers, selected, catalog, seen, ratings) {
     const score = weight[row.match] + weight.feedbackMax * (helpful-unhelpful)/(helpful+unhelpful+research.feedbackPrior)
       - (labels[0] === '没帮助' && labels[1] === '没帮助' ? weight.consecutiveUnhelpful : 0);
     pool.push({id:item.id,title:item.title,needId:row.need,score,relationId:row.need+':'+row.id,
-      explanation:selected[row.need] && row.codes.length ? choices[row.need][selected[row.need]] : null});
+      explanation:null});
   }
-  for (const pool of pools.values()) pool.sort((a,b) => b.score-a.score || a.relationId.localeCompare(b.relationId));
+  for (const [need, pool] of pools) {
+    pool.sort((a,b) => Number(selfGuided.has(b.id)) - Number(selfGuided.has(a.id)) || b.score - a.score);
+    for (let start = 0; start < pool.length;) {
+      let end = start + 1;
+      const independent = selfGuided.has(pool[start].id);
+      while (end < pool.length && selfGuided.has(pool[end].id) === independent && pool[end].score === pool[start].score) end++;
+      const split = start + tieOffset(seed + need, end - start);
+      pool.splice(start, end - start, ...pool.slice(split, end), ...pool.slice(start, split));
+      start = end;
+    }
+  }
   const used = new Set();
   const recommendations = [];
-  for (let pass=0;pass<research.maxChoices;pass++) {
-    for (const pool of pools.values()) {
-      const card = pool.find(c => !used.has(items.get(c.id).workId));
-      if (!card) continue;
-      used.add(items.get(card.id).workId);
-      recommendations.push({...card,eligibleCount:pool.length});
-      if (recommendations.length === research.maxChoices) break;
+  // Even across different emotional needs, exhaust independent practice before guided material.
+  for (const independent of [true, false]) {
+    for (let pass = 0; pass < research.maxChoices; pass++) {
+      for (const pool of pools.values()) {
+        if (recommendations.length === research.maxChoices) return {candidateIds,recommendations};
+        const card = pool.find(c => selfGuided.has(c.id) === independent && !used.has(items.get(c.id).workId));
+        if (!card) continue;
+        used.add(items.get(card.id).workId);
+        recommendations.push({...card,eligibleCount:pool.length});
+      }
     }
-    if (recommendations.length === research.maxChoices) break;
   }
   return {candidateIds,recommendations};
 }
@@ -166,8 +180,8 @@ function recommend(answers, selected, catalog, seen, ratings) {
   }
   function surveyTimeWindow(row) {
     return row.previousReminderAt
-      ? "上次提醒时间（北京时间）：" + BeijingTime.format(row.previousReminderAt)
-      : "上次提醒时间未记录。各题的时间范围见题文。";
+      ? "上次提醒时间：" + BeijingTime.format(row.previousReminderAt)
+      : "";
   }
   function createQuestionnaireAnswers() {
     return Object.fromEntries(
@@ -246,9 +260,6 @@ function recommend(answers, selected, catalog, seen, ratings) {
       if (unanswered) {
         return { valid: false, questionId: question.id, message: `请完成这一题：${getQuestionnaireQuestionTitle(question)}` };
       }
-      if (shouldShowQuestionnaireNote(question, value) && !String(state.questionnaireNotes[question.id] || "").trim()) {
-        return { valid: false, questionId: question.id, message: "选择“其他”后，请补充具体信息" };
-      }
     }
     return { valid: true, questionId: "", message: "" };
   }
@@ -262,9 +273,6 @@ function recommend(answers, selected, catalog, seen, ratings) {
     return question.title;
   }
   function evaluateEmaCrisis(answers = state.answers) {
-    if (state.surveyMode === "trial" && state.surveyClaim?.versions?.rule !== "2C-b-local-E1-v1") {
-      return { active: false, immediate: false };
-    }
     const nssiBehavior = answers.nssi_behavior === "是";
     const suicideAttempt = answers.suicide_attempt === "是";
     const nssiUrge = Number(answers.nssi_urge || 0);
@@ -278,9 +286,9 @@ function recommend(answers, selected, catalog, seen, ratings) {
       immediate,
       elevated,
       copy: window.EMA_CRISIS_COPY || {
-        title: "安全优先",
-        body: "如果你正在经历自伤或自杀相关的痛苦，请立刻寻求帮助。",
-        action: "继续对话支持",
+        title: "需要支持的时候",
+        body: "如果你担心自己现在会受伤，可以先找一个信任的人陪你。如果有眼前的危险，请立即寻求当地急救帮助。",
+        action: "聊一聊",
       },
     };
   }
@@ -303,24 +311,11 @@ function recommend(answers, selected, catalog, seen, ratings) {
         <p>${escapeHtml(crisis.copy.body)}</p>
 
         <div class="ema-crisis-actions">
-          <button type="button" class="ema-crisis-call-btn" data-help-resources>查看求助方式</button>
+          <button type="button" class="ema-crisis-call-btn" data-help-resources>查看求助资源</button>
+          <button type="button" class="ema-crisis-chat-btn" data-route="chat">${escapeHtml(crisis.copy.action)}</button>
         </div>
       </div>
     `;
-  }
-  function comparisonControl(q) {
-    const old = state.surveyComparison?.get(q.id);
-    if (!old || old.value === "" || ![].concat(old.value ?? []).length) return "";
-    const answer = escapeHtml([].concat(old.value, old.note || []).join("、"));
-    const action = old.signature === surveyQuestionSignature(q)
-      ? '<button type="button" data-confirm-answer="' + escapeHtml(q.id) + '">确认沿用这一题</button>'
-      : "题义已变，请重新作答。";
-    return '<div class="survey-compare">上一份回答：' + answer + " " + action + "</div>";
-  }
-  function surveyQuestionSignature(q) {
-    const fields = [q.type, getQuestionnaireQuestionTitle(q), q.minLabel, q.maxLabel,
-      q.options, q.noteOptions, q.noteRequiredWhen, q.visibleWhen, q.polarity, q.riskMetric, q.metricKey];
-    return JSON.stringify(fields);
   }
   function updateTrialBranch(controllerId, value) {
     const oldTitles = new Map(getVisibleQuestionnaireQuestions().map(q => [q.id, getQuestionnaireQuestionTitle(q)]));
@@ -341,17 +336,24 @@ function recommend(answers, selected, catalog, seen, ratings) {
       return `
         <section class="page questionnaire-page questionnaire-intro-page">
           <div class="questionnaire-topbar">
-            <span class="questionnaire-spacer"></span>
+            <button class="icon-btn" data-route="home">
+              <img src="./assets/icons/返回.svg" alt="返回" />
+            </button>
             <strong>EMA 问卷</strong>
             <span class="questionnaire-spacer"></span>
           </div>
           <div class="questionnaire-intro">
-            <h2>您好，<br />欢迎进行每日问卷测评！</h2>
-            <p class="questionnaire-intro-note">甲方试填 · 请使用虚构答案。刷新或关闭页面会清除本次填写。</p>
-            <p class="questionnaire-intro-note">包含情绪认知、情境社交与安全相关条目，约需几分钟。</p>
+            <h2>请回答下面的问题。</h2>
+            ${state.surveyMode === "trial" ? `<p class="questionnaire-intro-note">今日问卷 · ${getTodayDateKey()}</p>
+              <p>${state.surveyScheduleLoading ? "正在查看今日日程…" : state.surveyError ? "日程无法确认" :
+                state.surveySchedule ? escapeHtml(state.surveySchedule.templateName) + " · 自 " + escapeHtml(state.surveySchedule.effectiveDate) + " 生效" :
+                "今天没有安排问卷。"}</p>` : ""}
+            <p class="questionnaire-intro-note">花几分钟，记录一下此刻的感受和最近的经历。</p>
             <img class="questionnaire-hero" src="./assets/images/问卷调查-插图01.png" alt="问卷插图" />
             <p role="status">${escapeHtml(state.surveyError || state.surveyNotice)}</p>
-            <button class="questionnaire-primary" id="start-questionnaire">${Object.values(state.answers).some(v => v !== '' && (!Array.isArray(v) || v.length)) ? '继续填写' : '开始测评'}</button>
+            <button class="questionnaire-primary" id="start-questionnaire" ${state.surveyBusy || state.surveyScheduleLoading ||
+              (state.surveyMode === "trial" && !state.surveySchedule && !state.surveyError) ? "disabled" : ""}>${state.surveyError ? "重新加载问卷" : "开始测评"}</button>
+            ${state.surveyMode === "trial" && !state.surveySchedule && !state.surveyError ? '<button id="survey-refresh-intro">重新查看日程</button>' : ""}
           </div>
         </section>
       `;
@@ -374,8 +376,8 @@ function recommend(answers, selected, catalog, seen, ratings) {
         </div>
         <div class="questionnaire-form-body">
           <div class="questionnaire-form-intro">
-            ${state.surveyMode === "trial" ? `<button type="button" data-help-resources>求助方式</button><p>${escapeHtml(surveyTimeWindow(state.surveyClaim))}</p>` : ""}
-            <h2>请根据您的实际情况回答以下问题，<br />感谢您的配合!</h2>
+            ${state.surveyMode === "trial" ? `<button type="button" data-help-resources>求助资源</button><p>${escapeHtml(surveyTimeWindow(state.surveyClaim))}</p>` : ""}
+            <h2>请按题目给出的时间范围回答。<br />遇到需要帮助的情况，可以随时打开求助资源。</h2>
             <img class="questionnaire-corner-fairy" src="./assets/images/Group 2631.png" alt="装饰" />
           </div>
           <fieldset class="survey-fields" ${state.surveyRequest || state.surveyBusy ? "disabled" : ""}>
@@ -383,13 +385,13 @@ function recommend(answers, selected, catalog, seen, ratings) {
             .map((question) => {
               const moduleHeader =
                 question.moduleTitle && question.module !== lastModule
-                  ? `<div class="ema-module-header">${escapeHtml(question.moduleTitle)}</div>`
+                  ? `<div class="ema-module-header">${escapeHtml(({ "模块 A：情绪与认知":"此刻的感受", "模块 B：情境信息与社会评估":"你在哪里，和谁在一起", "模块 C：非自杀性自伤":"关于伤害自己的想法和经历", "自杀相关条目":"关于结束生命的想法和经历" })[question.moduleTitle] || question.moduleTitle)}</div>`
                   : "";
               lastModule = question.module || lastModule;
               displayIndex += 1;
               const crisisBanner =
                 crisis.active && question.id === crisisAnchorId ? renderEmaCrisisBanner(crisis) : "";
-              return `${moduleHeader}${renderQuestionnaireQuestion(question, displayIndex - 1)}${comparisonControl(question)}${crisisBanner}`;
+              return `${moduleHeader}${renderQuestionnaireQuestion(question, displayIndex - 1)}${crisisBanner}`;
             })
             .join("")}
           ${
@@ -401,9 +403,8 @@ function recommend(answers, selected, catalog, seen, ratings) {
         </div>
         <div class="questionnaire-form-footer">
           ${state.surveyNotice ? `<p role="alert">${escapeHtml(state.surveyNotice)}</p>` : ""}
-          ${state.surveyProblem === "expired" ? '<button id="survey-reclaim">重新领取并逐题核对</button>' : ""}
           ${state.surveyProblem === "conflict" || state.surveyProblem === "uncertain" ? '<button id="survey-saved">查看已保存问卷</button>' : ""}
-          <button class="questionnaire-primary questionnaire-submit" id="submit-questionnaire" ${state.surveyBusy || ["expired","conflict","unknown"].includes(state.surveyProblem) ? "disabled" : ""}>${state.surveyBusy ? "正在处理…" : state.surveyProblem === "uncertain" ? "重交同一份，取回收据" : "提交问卷"}</button>
+          <button class="questionnaire-primary questionnaire-submit" id="submit-questionnaire" ${state.surveyBusy || state.surveyProblem === "conflict" ? "disabled" : ""}>${state.surveyBusy ? "正在处理…" : state.surveyProblem === "conflict" ? "已提交" : state.surveyProblem ? "重新提交" : "提交问卷"}</button>
         </div>
       </section>
     `;
@@ -432,8 +433,8 @@ function recommend(answers, selected, catalog, seen, ratings) {
             />
             <div class="questionnaire-range-scale">
               <div class="questionnaire-range-meta">
-                <span>${escapeHtml(question.minLabel)}</span>
-                <span>${escapeHtml(question.maxLabel)}</span>
+                <span>${escapeHtml(question.id === "social_evaluation" ? "完全不同意（0）" : question.minLabel)}</span>
+                <span>${escapeHtml(question.id === "social_evaluation" ? "非常同意（100）" : question.maxLabel)}</span>
               </div>
               <div class="questionnaire-range-shell">
                 <input
@@ -469,7 +470,7 @@ function recommend(answers, selected, catalog, seen, ratings) {
                     type="button"
                     class="questionnaire-choice-item ${value === option ? "active" : ""}"
                     data-question-choice="${question.id}"
-                    data-option="${option}"
+                    data-option="${escapeHtml(option)}"
                   >
                     <span class="choice-marker"></span>
                     <span>${escapeHtml(option)}</span>
@@ -503,7 +504,7 @@ function recommend(answers, selected, catalog, seen, ratings) {
                   type="button"
                   class="questionnaire-choice-item ${selected ? "active" : ""}"
                   data-question-multi="${question.id}"
-                  data-option="${option}"
+                  data-option="${escapeHtml(option)}"
                 >
                   <span class="choice-marker"></span>
                   <span>${escapeHtml(option)}</span>
@@ -545,7 +546,8 @@ function recommend(answers, selected, catalog, seen, ratings) {
         const value = state.answers[question.id];
         answers[question.id] = Array.isArray(value) ? [...value] : value;
         if (shouldShowQuestionnaireNote(question, value)) {
-          answers[question.id + "_note"] = state.questionnaireNotes[question.id].trim();
+          const note = String(state.questionnaireNotes[question.id] || "").trim();
+          if (note) answers[question.id + "_note"] = note;
         }
       }
       return answers;
@@ -585,14 +587,12 @@ function recommend(answers, selected, catalog, seen, ratings) {
     }
     const summary = row.summary;
     const parts = [header, '<div class="survey-review" data-survey-source="' + escapeHtml(row.source) +
-      '" data-survey-id="' + escapeHtml(row.id) + '"><header class="survey-review-heading"><span>本次填写</span><h1>谢谢你花时间记录自己的感受。</h1>',
-      '<p>' + BeijingTime.format(row.createdAt) + '（北京时间）</p></header>'];
+      '" data-survey-id="' + escapeHtml(row.id) + '"><header class="survey-review-heading"><span>本次填写</span><h1>本次回答已保存。</h1>',
+      '<p>' + BeijingTime.format(row.createdAt) + '</p></header>'];
     if (row.source === "trial") {
-      if (summary.showSupport === true) parts.push('<aside class="survey-support"><h2>需要帮助时</h2><p>如果此刻想找人陪你，可以联系一个你信任的人，也可以在这里查看求助方式。</p><button type="button" data-help-resources>查看求助方式 <span aria-hidden="true">↗</span></button></aside>');
-      if (summary.showSupport == null || summary.complete !== true) parts.push('<p class="survey-review-note" role="status">本次判断未完成，以下仅展示已保存的回答。</p>');
+      if (summary.showSupport === true) parts.push('<aside class="survey-support"><h2>需要帮助时</h2><p>如果此刻想找人陪你，可以联系一个你信任的人，也可以在这里查看求助方式。</p><button type="button" data-help-resources>查看求助资源 <span aria-hidden="true">↗</span></button></aside>');
     } else {
-      parts.push('<aside class="survey-review-note"><p>这是一份旧版问卷，结果保留当时的记录，不代表你现在的状态。</p>');
-      if (summary.legacyEvidenceUnavailable) parts.push('<p>旧算法，依据不可复核。</p>');
+      parts.push('<aside class="survey-review-note"><p>当时的填写结果</p>');
       if (summary.legacyScore != null) parts.push('<p>旧版综合评分：' + escapeHtml(summary.legacyScore) + '</p>');
       if (summary.legacyLevel != null) parts.push('<p>旧版等级：' + escapeHtml(({low:"低",medium:"中",high:"高"})[summary.legacyLevel] || summary.legacyLevel) + '</p>');
       parts.push('</aside>');
@@ -602,18 +602,17 @@ function recommend(answers, selected, catalog, seen, ratings) {
         row.recommendations.map(renderSurveyExerciseCard).join("") + '</section>');
     }
     if (row.partnerMatching && summary.showSupport === false && !row.recommendations?.length)
-      parts.push('<p class="survey-review-note">' + escapeHtml(row.emptyReason) + '</p>');
+      parts.push('<p class="survey-review-note">这次没有推荐练习。</p>');
     if (row.source === "trial" && summary.complete === true && summary.showSupport === true) {
       const available = (row.recommendations || []).filter(card => card.cardId && card.available === true);
-      if (available.length) parts.push('<details class="survey-answer-group survey-contact"><summary>我也想做个练习</summary>' +
-        available.map(renderSurveyExerciseCard).join("") + '</details>');
-      else if (row.partnerMatching) parts.push('<p class="survey-review-note">' + escapeHtml(row.emptyReason) + '</p>');
+      if (available.length || row.partnerMatching) parts.push('<details class="survey-answer-group survey-contact"><summary>我也想做个练习</summary>' +
+        (available.length ? available.map(renderSurveyExerciseCard).join("") : '<p>这次没有推荐练习。</p>') + '</details>');
     }
     if (row.source === "trial" && summary.complete === true && summary.showSupport === false) {
       parts.push('<details class="survey-answer-group survey-contact"><summary>我想找人聊聊</summary>' +
         '<p>挑一个你愿意说心里话的人。如果一时不知道怎么开口，可以给对方发一句：</p>' +
         '<blockquote>你现在方便聊一会儿吗？我想找个人说说话。</blockquote>' +
-        '</details>');
+        '<button type="button" data-help-resources>查看其他求助方式</button></details>');
     }
     const answers = (summary.answers || []).filter(item => item.id !== "nssi_method" && !item.id?.endsWith("_note"));
     const feelings = new Set(["anxiety", "stress", "irritability", "sadness", "unease", "emptiness", "loneliness", "dysregulation", "rumination", "self_criticism"]);
@@ -633,16 +632,14 @@ function recommend(answers, selected, catalog, seen, ratings) {
     return parts.join("") + '</div></section>';
   }
   function renderSurveyExerciseCard(card) {
-    if (!card.cardId) return '<p>' + escapeHtml(card.title) + '</p>';
+    if (!card.cardId || !card.id) return '<p>' + escapeHtml(card.title) + '</p>';
     const identity = escapeHtml(card.cardId);
     const info = '<div><h3>' + escapeHtml(card.title) + '</h3><p>' +
       escapeHtml([card.mode === 'article' ? '阅读' : card.mode, card.duration].filter(Boolean).join(" · ")) + '</p>' +
       (card.explanation ? '<p>' + escapeHtml(card.explanation) + '</p>' : '') + '</div>';
     if (card.available !== true) return '<article class="survey-exercise-card" data-survey-card="' + identity +
       '">' + info + '<p role="status">当前不可用</p></article>';
-    if (!canRead) return '<article class="survey-exercise-card">' + info +
-      '<p>请用完整试填链接阅读正文</p></article>';
-    return '<article class="survey-exercise-card" data-survey-card="' + identity + '">' + info +
-      '<button type="button" class="survey-open-label" data-survey-open="' + identity +
-      '" aria-label="打开练习：' + escapeHtml(card.title) + '">打开练习 ↗</button></article>';
+    return '<a class="survey-exercise-card" data-survey-card="' + identity + '" data-survey-open="' + identity +
+      '" href="#/content?item=' + encodeURIComponent(card.id) + '&amp;surveyCard=' + encodeURIComponent(card.cardId) +
+      '">' + info + '<span class="survey-open-label">打开练习 <span aria-hidden="true">↗</span></span></a>';
   }

@@ -2743,6 +2743,31 @@ button {
   background: #93a59b;
 }
 
+.content-feedback-panel .content-reading-options {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.content-reading-options label {
+  display: grid;
+  gap: 6px;
+  color: rgba(19, 19, 21, 0.62);
+  font-size: 12px;
+}
+
+.content-reading-options select,
+.content-reading-options textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(19, 19, 21, 0.14);
+  border-radius: 10px;
+  padding: 9px 10px;
+  color: rgba(19, 19, 21, 0.78);
+  background: rgba(255, 255, 255, 0.76);
+  font: inherit;
+}
+
 .history-chat-thread {
   display: grid;
   gap: 14px;
@@ -6796,8 +6821,9 @@ html.is-native-webview .home-card-wide[data-tone="mint"] .home-card-copy {
 .help-resource-dialog h2 { margin:0 0 16px; font-size:22px; }
 .help-resource-dialog p { line-height:1.6; overflow-wrap:anywhere; }
 .help-resource-dialog section { padding:12px 0; border-top:1px solid #ddd; }
-.help-resource-dialog button,.help-resource-open { min-height:40px; padding:8px 12px; border:1px solid #bcb8b3; border-radius:8px; background:#f4ede8; color:#332820; cursor:pointer; }
-.help-resource-dialog button:focus-visible,.help-resource-open:focus-visible { outline:2px solid #875238; outline-offset:3px; }
+.help-resource-dialog a {display:inline-flex;align-items:center;text-decoration:underline;}
+.help-resource-dialog a,.help-resource-dialog button,.help-resource-open { min-height:40px; padding:8px 12px; border:1px solid #bcb8b3; border-radius:8px; background:#f4ede8; color:#332820; cursor:pointer; }
+.help-resource-dialog a:focus-visible,.help-resource-dialog button:focus-visible,.help-resource-open:focus-visible { outline:2px solid #875238; outline-offset:3px; }
 .help-resource-dialog button:disabled { opacity:.6; cursor:wait; }
 .help-resource-close { margin-top:16px; }
 

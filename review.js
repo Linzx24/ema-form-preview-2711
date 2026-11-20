@@ -2,6 +2,7 @@
 const root=document.getElementById('screen');
 const data={questionnaire:frozenQuestions,questionnaireScaleMarks:[0,20,40,60,80,100]};
 const state={surveyMode:'trial',surveyBusy:false,surveyError:'',surveyNotice:'',questionnaireStarted:false,
+  surveySchedule:{templateName:'公开试填',effectiveDate:getTodayDateKey()},
   surveyClaim:{versions:{rule:RULE_VERSION},previousReminderAt:null},
   answers:createQuestionnaireAnswers(),questionnaireNotes:createQuestionnaireNotes()};
 const dialog=document.getElementById('dialog');
@@ -69,7 +70,7 @@ function submit(){
  const result=validateAnswers(frozenQuestions,buildQuestionnaireSubmissionAnswers());
  if(result.errors.length){tell('请核对问卷','还有未完成或无效的回答。');return}
  const answers=result.answers;
- const matched=recommend(answers,{},catalog,new Set(),questionnaireRatings());
+ const matched=recommend(answers,{},catalog,questionnaireSeen(),questionnaireRatings(),trial);
  const safety=inspectSafety(answers,RULE_VERSION,null);
  const items=frozenQuestions.filter(q=>Object.hasOwn(answers,q.id)&&q.id!=='nssi_method').map(q=>({id:q.id,title:q.titleBy?.[answers.social_context]||q.title,value:answers[q.id]}));
  const id=++counter;
@@ -78,6 +79,7 @@ function submit(){
    '这次十项感受中最高为 '+Math.max(...research.needs.tieOrder.map(id=>answers[id]))+' 分。单项达到 '+research.needs.minScore+' 分才会匹配练习。',
   summary:{complete:true,showSupport:safety.safetyStatus==='triggered',previousReminderAt:null,answers:items},
   recommendations:matched.recommendations.map((r,i)=>{const item=catalog.find(x=>x.id===r.id);return {...r,mode:item.mode,duration:item.duration,cardId:id+':'+i,available:true}})}};
+ state.surveyDetail.submission.recommendations.forEach(card=>rememberQuestionnaireShown(card.id));
  formScroll=root.querySelector('.questionnaire-form-body').scrollTop;navigate('result');root.scrollTop=0;
 }
 root.addEventListener('input',e=>{
