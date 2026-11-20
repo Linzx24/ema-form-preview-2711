@@ -32,10 +32,20 @@ window.addEventListener('popstate',e=>{
  if(target!==page||e.state?.trial!==trial)history.replaceState({trial,view:page},'');
  show();
 });
+let exposureObserver;
 function show(){
+ exposureObserver?.disconnect();
  if(page==='result'){
   const row=state.surveyDetail.submission;
   root.innerHTML=renderSurveyRecord({source:'trial',id:String(row.id)});
+  if(canRead)exposureObserver=new IntersectionObserver(entries=>{
+   for(const entry of entries){
+    if(!entry.isIntersecting||entry.intersectionRatio<0.5||document.hidden)continue;
+    const shown=row.recommendations.find(item=>item.cardId===entry.target.dataset.surveyCard);
+    if(shown)rememberQuestionnaireShown(shown);
+    exposureObserver.unobserve(entry.target);
+   }
+  },{threshold:0.5});
   for(const el of root.querySelectorAll('[data-survey-card]')){
    const card=row.recommendations.find(item=>item.cardId===el.dataset.surveyCard);
    if(!card)continue;
@@ -43,10 +53,7 @@ function show(){
     const title=document.createElement('h3');title.textContent=card.title;
     const info=document.createElement('article');info.className='survey-exercise-card';info.append(title);el.replaceWith(info);continue;
    }
-   const observer=new IntersectionObserver(entries=>{
-    if(entries.some(entry=>entry.isIntersecting)&&!document.hidden){rememberQuestionnaireShown(card);observer.disconnect()}
-   });
-   observer.observe(el);
+   exposureObserver.observe(el);
   }
   const nav=root.querySelector('.survey-record-nav');nav.replaceChildren();
   const back=document.createElement('button');back.id='again';back.textContent='重新试填';nav.append(back);
