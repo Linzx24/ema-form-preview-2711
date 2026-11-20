@@ -19,7 +19,7 @@ function navigate(view){
 history.replaceState({trial,view:page},'');
 window.addEventListener('popstate',e=>{
  ++readingRequest;
- if(page==='form')formScroll=root.querySelector('.questionnaire-form-body').scrollTop;
+ if(page==='form')formScroll=root.querySelector('.questionnaire-form-page').scrollTop;
  const target=e.state?.trial===trial?e.state.view:'intro';
  if(target==='result'&&page==='reading'){restoreResult();return}
  savedResult=null;
@@ -62,12 +62,15 @@ function show(){
   if(page==='intro')root.querySelector('.questionnaire-intro [role=status]').textContent=canRead
    ?'提交后可查看本次回答，并阅读符合条件的推荐练习。'
    :'可以试填并查看推荐名称。阅读正文需要发送方提供的完整试填链接。';
-  if(page==='form')root.querySelector('.questionnaire-form-body').scrollTop=formScroll;
+  if(page==='form'){
+   root.querySelectorAll('[data-question-range]').forEach(bindQuestionnaireRange);
+   root.querySelector('.questionnaire-form-page').scrollTop=formScroll;
+  }
  }
 }
 function refreshForm(){
- const top=root.querySelector('.questionnaire-form-body')?.scrollTop||0;
- show();root.querySelector('.questionnaire-form-body').scrollTop=top;
+ const top=root.querySelector('.questionnaire-form-page')?.scrollTop||0;
+ show();root.querySelector('.questionnaire-form-page').scrollTop=top;
 }
 function updateSafety(){
  const old=root.querySelector('[data-ema-crisis-banner]'),anchor=getEmaCrisisAnchorQuestionId();
@@ -98,7 +101,7 @@ function submit(){
    '这次十项感受中最高为 '+Math.max(...research.needs.tieOrder.map(id=>answers[id]))+' 分。单项达到 '+research.needs.minScore+' 分才会匹配练习。',
   summary:{complete:true,showSupport:safety.safetyStatus==='triggered',previousReminderAt:null,answers:items},
   recommendations:matched.recommendations.map((r,i)=>{const item=catalog.find(x=>x.id===r.id);return {...r,mode:item.mode,duration:item.duration,cardId:id+':'+i,available:true}})}};
- formScroll=root.querySelector('.questionnaire-form-body').scrollTop;navigate('result');root.scrollTop=0;
+ formScroll=root.querySelector('.questionnaire-form-page').scrollTop;navigate('result');root.scrollTop=0;
 }
 root.addEventListener('input',e=>{
  if(page!=='form')return;
@@ -129,6 +132,5 @@ root.addEventListener('click',e=>{
  state.surveyDetail=null;updateTrialBranch(id,next);if(!shouldShowQuestionnaireNote(data.questionnaire.find(q=>q.id===id),next))state.questionnaireNotes[id]='';state.surveyNotice='';refreshForm();
  const buttons=root.querySelectorAll('[data-question-block="'+id+'"] button');
  Array.from(buttons).find(x=>x.dataset.option===v)?.focus({preventScroll:true});return}
- if(b.dataset.questionRange&&state.answers[b.dataset.questionRange]===''){state.surveyDetail=null;state.answers[b.dataset.questionRange]=Number(b.value);syncQuestionnaireSlider(b.dataset.questionRange);updateSafety();const block=b.closest('[data-question-block]');block.querySelector('#missing-answer')?.remove();block.querySelector('[aria-invalid]')?.removeAttribute('aria-invalid')}
 });
 checkReadingLink().then(ok=>{canRead=ok;show()});

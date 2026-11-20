@@ -6733,40 +6733,59 @@ details.survey-answer-group { padding-block: 6px; }
   .survey-exercise-card { align-items: flex-start; flex-direction: column; gap: 10px; }
 }
 
-/* The questionnaire, its recap and article reader share one light palette. */
+/* The picture lives on the stationary phone screen; each page scrolls over it. */
+.screen:has(> :is(.questionnaire-page, .survey-record-page, .content-trial-article-page)) {
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(23,59,54,.72), rgba(18,46,43,.82)), url("./assets/images/content-image-cover-clean.png") center top / cover no-repeat, #173b36;
+}
 :where(.questionnaire-page, .survey-record-page, .content-trial-article-page) {
-  --ema-page: #f6f7f4;
+  --ema-mist: rgba(240,246,242,.9);
+  --ema-glass: linear-gradient(rgba(255,255,255,.16),rgba(255,255,255,.16)), rgba(16,44,40,.35);
+  --ema-card: #f4f7f2;
+  --ema-card-line: rgba(255,255,255,.65);
   --ema-paper: #fff;
   --ema-line: #e4ebe7;
   --ema-ink: #1e2b26;
   --ema-body: #2c3b35;
   --ema-muted: #5a6b64;
-  --ema-tick: #65756d;
+  --ema-tick: #63736b;
   --ema-brand: #2f6b58;
   --ema-pressed: #255646;
   --ema-wash: #eaf3ef;
   --ema-on-wash: #235344;
-  --ema-shadow: 0 6px 20px rgba(31,51,43,.05);
+  --ema-shadow: 0 10px 28px rgba(10,28,25,.16);
   color-scheme: light;
 }
 .page:is(.questionnaire-page, .survey-record-page, .content-trial-article-page) {
-  background: var(--ema-page); color: var(--ema-body);
+  background: transparent; color: var(--ema-body);
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "HarmonyOS Sans SC", "MiSans", "Noto Sans CJK SC", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
 }
 :is(.questionnaire-page, .survey-record-page, .content-trial-article-page) :is(button, input, textarea, select) { font-family: inherit; }
 :is(.questionnaire-page, .survey-record-page, .content-trial-article-page) h1 { font-size: 22px; font-weight: 600; line-height: 1.45; color: var(--ema-ink); }
-.questionnaire-intro { padding: 28px 4px 14px; }
+.questionnaire-intro { padding: 24px 2px 14px; }
+.questionnaire-intro-card { margin-top: 22px; padding: 18px; }
+.questionnaire-intro-page { height: 100%; overflow-y: auto; }
 .questionnaire-intro h1 { margin: 0; }
 .questionnaire-intro-note, .questionnaire-form-intro p { margin: 6px 0; color: var(--ema-muted); font-size: 14px; line-height: 1.65; }
 .questionnaire-intro [role=status] { min-height: 1em; margin: 10px 0 14px; color: var(--ema-muted); text-align: center; font-size: 13px; line-height: 1.65; }
-.questionnaire-hero { width: min(56vw, 210px); margin: 26px auto 20px; }
+.questionnaire-hero { width: min(50vw, 195px); margin: 6px auto 18px; }
 .questionnaire-topbar :is(h1,strong) { margin: 0; color: var(--ema-ink); }
 .questionnaire-page .questionnaire-primary, .survey-support button {
   min-height: 46px; padding: 10px 18px; border: 0; border-radius: 14px; color: white; background: var(--ema-brand); font-weight: 600; box-shadow: var(--ema-shadow);
 }
 .questionnaire-page .questionnaire-primary:active, .survey-support button:active { background: var(--ema-pressed); }
-.questionnaire-form-footer { background: var(--ema-page); }
-.questionnaire-form-body { padding-bottom: 12px; }
+.questionnaire-form-page {
+  display: block; height: 100%; overflow-y: auto; overscroll-behavior-y: contain;
+  scroll-padding-block: 12px calc(86px + env(safe-area-inset-bottom,0px));
+  padding-bottom: 0;
+}
+.questionnaire-form-body { height: auto; max-height: none; overflow: visible; padding-bottom: 12px; }
+.questionnaire-form-footer {
+  position: sticky; bottom: 0; padding: 10px 0 calc(10px + env(safe-area-inset-bottom,0px));
+  background: linear-gradient(transparent,rgba(18,46,43,.9) 65%);
+}
+.questionnaire-form-footer [role=alert] { margin: 0; padding: 6px 12px; background: var(--ema-card); color: #783c26; border-radius: 12px; }
+.questionnaire-form-footer .questionnaire-submit { border: 1px solid rgba(255,255,255,.62); }
 .questionnaire-form-intro { min-height: 0; margin: 8px 0; }
 .questionnaire-form-intro p:empty { display: none; }
 .questionnaire-form-intro [data-help-resources], .survey-record-nav :is(button,a), .survey-record-page > :is(button,.survey-record-link), .survey-contact button {
@@ -6774,8 +6793,8 @@ details.survey-answer-group { padding-block: 6px; }
   background: var(--ema-paper); color: var(--ema-on-wash); text-decoration: none; font-size: 14px;
 }
 .ema-module-header { margin: 16px 0 10px; padding: 9px 14px; border-radius: 12px; background: var(--ema-wash); color: var(--ema-on-wash); font-weight: 600; }
-.ema-question, .survey-answer-group, .survey-support, .survey-review-note {
-  background: var(--ema-paper); border: 1px solid var(--ema-line); border-radius: 18px; box-shadow: var(--ema-shadow); color: var(--ema-body);
+.questionnaire-intro-card, .ema-question, .survey-answer-group, .survey-support, .survey-review-note {
+  background: var(--ema-card); border: 1px solid var(--ema-card-line); border-radius: 20px; box-shadow: var(--ema-shadow); color: var(--ema-body);
 }
 .ema-question { padding: 16px; margin-bottom: 12px; }
 .ema-question h3 { margin: 0 0 10px; color: var(--ema-ink); font-size: 15px; font-weight: 600; line-height: 1.55; }
@@ -6785,14 +6804,21 @@ details.survey-answer-group { padding-block: 6px; }
 .questionnaire-range-number::placeholder, .questionnaire-note-input::placeholder { color: var(--ema-muted); opacity: 1; }
 .questionnaire-range-meta { margin: 0; color: var(--ema-muted); font-size: 12px; line-height: 1.4; }
 .questionnaire-range-meta span:last-child { text-align: end; }
-.questionnaire-range-marks { padding: 0 10px; margin: 0; color: var(--ema-tick); font-size: 11px; font-variant-numeric: tabular-nums; }
-.questionnaire-range-shell { padding: 0; }
-.questionnaire-range-input { display: block; height: 44px; border-radius: 12px; accent-color: var(--ema-brand); }
-.questionnaire-range-input::-webkit-slider-runnable-track { height: 8px; border-radius: 99px; background: linear-gradient(to right,var(--ema-brand) var(--range-fill,0%),#e5ece8 var(--range-fill,0%)); }
-.questionnaire-range-input::-moz-range-track { height: 8px; background: #e5ece8; }
-.questionnaire-range-input::-moz-range-progress { height: 8px; background: var(--ema-brand); }
-.questionnaire-range-input::-webkit-slider-thumb { margin-top: -7px; box-sizing: border-box; width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid var(--ema-brand); background: white; box-shadow: 0 2px 6px rgba(47,107,88,.22); }
-.questionnaire-range-input::-moz-range-thumb { box-sizing: border-box; width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid var(--ema-brand); background: white; box-shadow: 0 2px 6px rgba(47,107,88,.22); }
+.questionnaire-range-scale { --thumb-radius: 11px; }
+.questionnaire-range-marks { display: grid; grid-template-columns: repeat(6,0px); justify-content: space-between; gap: 0; padding: 0 var(--thumb-radius); margin: 0; color: var(--ema-tick); font-size: 11px; font-variant-numeric: tabular-nums; }
+.questionnaire-range-marks span { justify-self: center; white-space: nowrap; }
+.questionnaire-range-shell { padding: 0; touch-action: pan-y; }
+@media (any-pointer: coarse) { .questionnaire-range-shell > input { pointer-events: none; } }
+.questionnaire-range-input { display: block; box-sizing: border-box; padding: 0; border: 0; height: 30px; touch-action: pan-y; border-radius: 12px; accent-color: var(--ema-brand);
+  --thumb-center: calc(var(--thumb-radius) + (100% - 2 * var(--thumb-radius)) * var(--range-ratio, 0));
+  --thumb-stroke: var(--ema-brand);
+  --range-green: var(--ema-brand); }
+.questionnaire-range-input::-webkit-slider-runnable-track { height: 8px; border-radius: 99px; background: linear-gradient(to right,var(--range-green) var(--thumb-center),#e5ece8 var(--thumb-center)); }
+.questionnaire-range-input::-moz-range-track { height: 8px; background: linear-gradient(to right,var(--range-green) var(--thumb-center),#e5ece8 var(--thumb-center)); }
+.questionnaire-range-input::-moz-range-progress { background: transparent; }
+.is-unanswered .questionnaire-range-input { --range-green: #e5ece8; --thumb-stroke: #b8c5bf; }
+.questionnaire-range-input::-webkit-slider-thumb { margin-top: -7px; box-sizing: border-box; width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid var(--thumb-stroke); background: white; box-shadow: 0 2px 6px rgba(47,107,88,.22); }
+.questionnaire-range-input::-moz-range-thumb { box-sizing: border-box; width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid var(--thumb-stroke); background: white; box-shadow: 0 2px 6px rgba(47,107,88,.22); }
 
 .questionnaire-choice-item { min-height: 44px; padding: 8px 12px; border: 1.5px solid var(--ema-line); border-radius: 12px; background: var(--ema-paper); color: var(--ema-body); }
 .questionnaire-choice-item.active { background: var(--ema-wash); border-color: var(--ema-brand); color: var(--ema-ink); font-weight: 500; }
@@ -6805,7 +6831,14 @@ details.survey-answer-group { padding-block: 6px; }
 .ema-crisis-actions button { min-height: 44px; }
 .ema-crisis-call-btn { background: #83472e; }
 .ema-crisis-chat-btn { color: #7c3a1d; }
-.page.survey-record-page { background: linear-gradient(180deg,#e3efea,var(--ema-page) 245px); }
+.questionnaire-topbar :is(h1,strong), .questionnaire-intro h1, .survey-review-heading h1 { color: white; }
+.questionnaire-intro-note, .questionnaire-form-intro p, .survey-review-heading > span, .survey-review-heading p { color: var(--ema-mist); }
+.questionnaire-topbar .icon-btn, .questionnaire-form-intro [data-help-resources], .survey-record-nav :is(a,button), .survey-record-page > :is(button,.survey-record-link) {
+  color: white; background: var(--ema-glass); border: 1px solid rgba(255,255,255,.55); border-radius: 99px;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.questionnaire-topbar .icon-btn img, .content-trial-article-topbar .icon-btn img { filter: brightness(0) invert(1); }
+
 .survey-record-page .history-summary-row strong { color: var(--ema-ink); }
 .survey-exercise-card p { color: var(--ema-muted); }
 .survey-open-label { padding: 8px 12px; border: 0; border-radius: 99px; background: var(--ema-wash); color: var(--ema-on-wash); font-size: 14px; }

@@ -347,11 +347,13 @@ function recommend(answers, selected, catalog, seen, ratings, seed = '') {
             ${state.surveyMode === "trial" ? `<p class="questionnaire-intro-note">${state.surveyScheduleLoading ? "正在查看今日日程…" :
               state.surveyError ? "日程无法确认" : state.surveySchedule ? escapeHtml(state.surveySchedule.templateName) + " · " + escapeHtml(state.surveySchedule.effectiveDate) + " 起" : "今天没有安排问卷。"}</p>` : ""}
             <p class="questionnaire-intro-note">花几分钟，记录一下此刻的感受和最近的经历。</p>
-            <img class="questionnaire-hero" src="./assets/images/问卷调查-插图01.png" alt="" />
-            <p role="status">${escapeHtml(state.surveyError || state.surveyNotice || (state.surveySchedule ? "填完后，可以回看这次的回答。" : ""))}</p>
-            <button class="questionnaire-primary" id="start-questionnaire" ${state.surveyBusy || state.surveyScheduleLoading ||
-              (state.surveyMode === "trial" && !state.surveySchedule && !state.surveyError) ? "disabled" : ""}>${state.surveyError ? "重新加载问卷" : "开始测评"}</button>
-            ${state.surveyMode === "trial" && !state.surveySchedule && !state.surveyError ? '<button id="survey-refresh-intro">重新查看日程</button>' : ""}
+            <div class="questionnaire-intro-card">
+              <img class="questionnaire-hero" src="./assets/images/问卷调查-插图01.png" alt="" />
+              <p role="status">${escapeHtml(state.surveyError || state.surveyNotice || (state.surveySchedule ? "填完后，可以回看这次的回答。" : ""))}</p>
+              <button class="questionnaire-primary" id="start-questionnaire" ${state.surveyBusy || state.surveyScheduleLoading ||
+                (state.surveyMode === "trial" && !state.surveySchedule && !state.surveyError) ? "disabled" : ""}>${state.surveyError ? "重新加载问卷" : "开始测评"}</button>
+              ${state.surveyMode === "trial" && !state.surveySchedule && !state.surveyError ? '<button id="survey-refresh-intro">重新查看日程</button>' : ""}
+            </div>
           </div>
         </section>
       `;
@@ -413,7 +415,7 @@ function recommend(answers, selected, catalog, seen, ratings, seed = '') {
     if (question.type === "slider") {
       const rangeValue = value === "" ? 0 : Math.min(100, Math.max(0, Number(value) || 0));
       return `
-        <div class="ema-question ema-question-slider" data-question-block="${question.id}">
+        <div class="ema-question ema-question-slider${value === "" ? " is-unanswered" : ""}" data-question-block="${question.id}">
           <h3><span class="ema-required" aria-hidden="true">*</span>${index + 1}. ${escapeHtml(title)}</h3>
           <div class="questionnaire-range-control">
             <input
@@ -443,7 +445,8 @@ function recommend(answers, selected, catalog, seen, ratings, seed = '') {
                   value="${rangeValue}"
                   data-question-range="${question.id}"
                   aria-label="${escapeHtml(title)}当前评分"
-                  style="--range-fill:${rangeValue}%;"
+                  aria-valuetext="${value === "" ? "未作答" : rangeValue + " 分"}"
+                  style="--range-ratio:${rangeValue / 100};"
                 />
               </div>
               <div class="questionnaire-range-marks">
@@ -524,16 +527,67 @@ function recommend(answers, selected, catalog, seen, ratings, seed = '') {
       </div>
     `;
   }
-  function syncQuestionnaireSlider(questionId) {
+  function bindQuestionnaireRange(input) {
+    // A tap at zero can leave the native value unchanged, so no input event fires.
+    const confirmZero = () => {
+      if (state.answers[input.dataset.questionRange] === "" && input.value === "0") {
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    };
+    // On touch screens the shell receives the gesture before a native track press
+    // can turn a vertical swipe into an answer. The input keeps keyboard/AT support.
+    const shell = input.parentElement;
+    const id = input.dataset.questionRange;
+    let gesture = null;
+    const scoreAt = x => {
+      const rect = input.getBoundingClientRect();
+      const radius = parseFloat(getComputedStyle(input).getPropertyValue("--thumb-radius"));
+      return Math.round(100 * Math.max(0, Math.min(1, (x - rect.left - radius) / (rect.width - 2 * radius))));
+    };
+    shell.addEventListener("pointerdown", event => {
+      if (event.target !== shell || !event.isPrimary || event.button !== 0 || input.matches(":disabled")) return;
+      gesture = { pointer: event.pointerId, x: event.clientX, y: event.clientY, horizontal: false };
+      shell.setPointerCapture(event.pointerId);
+    });
+    shell.addEventListener("pointermove", event => {
+      if (gesture?.pointer !== event.pointerId) return;
+      const dx = Math.abs(event.clientX - gesture.x), dy = Math.abs(event.clientY - gesture.y);
+      if (!gesture.horizontal) {
+        if (Math.max(dx, dy) < 6) return;
+        if (dy >= dx) { gesture = null; return; }
+        gesture.horizontal = true;
+      }
+      syncQuestionnaireSlider(id, scoreAt(event.clientX));
+    });
+    shell.addEventListener("lostpointercapture", () => {
+      if (gesture) syncQuestionnaireSlider(id);
+      gesture = null;
+    });
+    shell.addEventListener("pointerup", event => {
+      if (gesture?.pointer !== event.pointerId) return;
+      const vertical = !gesture.horizontal && Math.abs(event.clientY - gesture.y) >= 6;
+      gesture = null;
+      if (vertical || input.matches(":disabled")) { syncQuestionnaireSlider(id); return; }
+      input.value = String(scoreAt(event.clientX));
+      input.focus({ preventScroll: true });
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    input.addEventListener("click", confirmZero);
+    input.addEventListener("keyup", event => {
+      if (["Home", "ArrowLeft", "ArrowDown"].includes(event.key)) confirmZero();
+    });
+  }
+  function syncQuestionnaireSlider(questionId, rawValue = state.answers[questionId]) {
     const rangeInput = root.querySelector(`[data-question-range="${questionId}"]`);
     const numberInput = root.querySelector(`[data-question-number="${questionId}"]`);
     if (!rangeInput) {
       return;
     }
-    const rawValue = state.answers[questionId];
     const value = Math.min(100, Math.max(0, Math.round(Number(rawValue || 0))));
     rangeInput.value = String(value);
-    rangeInput.style.setProperty("--range-fill", `${value}%`);
+    rangeInput.setAttribute("aria-valuetext", rawValue === "" ? "未作答" : value + " 分");
+    rangeInput.style.setProperty("--range-ratio", String(value / 100));
+    rangeInput.closest(".ema-question-slider").classList.toggle("is-unanswered", rawValue === "");
     if (numberInput) {
       numberInput.value = rawValue === "" ? "" : String(value);
     }
