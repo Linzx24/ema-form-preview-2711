@@ -36,6 +36,18 @@ function show(){
  if(page==='result'){
   const row=state.surveyDetail.submission;
   root.innerHTML=renderSurveyRecord({source:'trial',id:String(row.id)});
+  for(const el of root.querySelectorAll('[data-survey-card]')){
+   const card=row.recommendations.find(item=>item.cardId===el.dataset.surveyCard);
+   if(!card)continue;
+   if(!canRead){
+    const title=document.createElement('h3');title.textContent=card.title;
+    const info=document.createElement('article');info.className='survey-exercise-card';info.append(title);el.replaceWith(info);continue;
+   }
+   const observer=new IntersectionObserver(entries=>{
+    if(entries.some(entry=>entry.isIntersecting)&&!document.hidden){rememberQuestionnaireShown(card);observer.disconnect()}
+   });
+   observer.observe(el);
+  }
   const nav=root.querySelector('.survey-record-nav');nav.replaceChildren();
   const back=document.createElement('button');back.id='again';back.textContent='重新试填';nav.append(back);
  }else{
@@ -79,7 +91,6 @@ function submit(){
    '这次十项感受中最高为 '+Math.max(...research.needs.tieOrder.map(id=>answers[id]))+' 分。单项达到 '+research.needs.minScore+' 分才会匹配练习。',
   summary:{complete:true,showSupport:safety.safetyStatus==='triggered',previousReminderAt:null,answers:items},
   recommendations:matched.recommendations.map((r,i)=>{const item=catalog.find(x=>x.id===r.id);return {...r,mode:item.mode,duration:item.duration,cardId:id+':'+i,available:true}})}};
- state.surveyDetail.submission.recommendations.forEach(card=>rememberQuestionnaireShown(card.id));
  formScroll=root.querySelector('.questionnaire-form-body').scrollTop;navigate('result');root.scrollTop=0;
 }
 root.addEventListener('input',e=>{

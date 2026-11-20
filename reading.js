@@ -7,10 +7,11 @@ function questionnaireSeen(){
  const now=Date.now(),shownCutoff=now-research.shownCooldownDays*86400000,rejectedCutoff=now-research.rejectedCooldownDays*86400000;
  return new Set([...sessionDisplayHistory.values()].filter(v=>v.shownAt>shownCutoff||(v.feedback==='没帮助'&&v.feedbackAt>rejectedCutoff)).map(v=>v.id));
 }
-function rememberQuestionnaireShown(id){
- if(!id)return;
+function rememberQuestionnaireShown(card){
+ if(card.shownAt)return;
+ const id=card.id;card.shownAt=Date.now();
  const previous=sessionDisplayHistory.get(id)||{};
- sessionDisplayHistory.set(id,{...previous,id,shownAt:previous.shownAt||Date.now()});
+ sessionDisplayHistory.set(id,{...previous,id,shownAt:card.shownAt});
 }
 function questionnaireRatings(){
  const ratings=new Map();
@@ -36,8 +37,8 @@ function bindReadingFeedback(card){
   card.feedback=label;
   const history=sessionDisplayHistory.get(card.id)||{id:card.id,shownAt:card.openedAt||Date.now()};
   history.feedback=label;history.feedbackAt=Date.now();sessionDisplayHistory.set(card.id,history);
-  if(label==='有帮助'||label==='没帮助')sessionVotes.set(card.id,{id:card.id,label,feedbackAt:history.feedbackAt});
-  else sessionVotes.delete(card.id);
+  if(label==='有帮助'||label==='没帮助')sessionVotes.set(card.cardId,{id:card.id,label,feedbackAt:history.feedbackAt});
+  else sessionVotes.delete(card.cardId);
   for(const option of panel.querySelectorAll('[data-content-feedback]')){
    if(!option.dataset.contentFeedback)option.hidden=!label;
    const selected=Boolean(label)&&label===option.dataset.contentFeedback;
@@ -75,7 +76,7 @@ async function openReading(card,forward=false){
   if(!forward)history.pushState({trial,view:'reading',cardId:card.cardId},'');
   page='reading';root.innerHTML=html;root.scrollTop=0;
   attachExerciseWorksheet(root,card.id,card.worksheetDrafts??=new Map());
-  card.openedAt??=Date.now();rememberQuestionnaireShown(card.id);bindReadingFeedback(card);
+  card.openedAt??=Date.now();rememberQuestionnaireShown(card);bindReadingFeedback(card);
   root.querySelector('[data-content-duration]')?.addEventListener('change',event=>{card.durationFeedback=event.target.value;});
   root.querySelector('[data-content-note]')?.addEventListener('input',event=>{card.jot=event.target.value;});
   const title=root.querySelector('h1');title.tabIndex=-1;title.focus({preventScroll:true});
