@@ -339,18 +339,16 @@ function recommend(answers, selected, catalog, seen, ratings, seed = '') {
             <button class="icon-btn" data-route="home">
               <img src="./assets/icons/返回.svg" alt="返回" />
             </button>
-            <strong>EMA 问卷</strong>
+            <strong>今日问卷</strong>
             <span class="questionnaire-spacer"></span>
           </div>
           <div class="questionnaire-intro">
-            <h2>请回答下面的问题。</h2>
-            ${state.surveyMode === "trial" ? `<p class="questionnaire-intro-note">今日问卷 · ${getTodayDateKey()}</p>
-              <p>${state.surveyScheduleLoading ? "正在查看今日日程…" : state.surveyError ? "日程无法确认" :
-                state.surveySchedule ? escapeHtml(state.surveySchedule.templateName) + " · 自 " + escapeHtml(state.surveySchedule.effectiveDate) + " 生效" :
-                "今天没有安排问卷。"}</p>` : ""}
+            <h1>记录此刻的感受</h1>
+            ${state.surveyMode === "trial" ? `<p class="questionnaire-intro-note">${state.surveyScheduleLoading ? "正在查看今日日程…" :
+              state.surveyError ? "日程无法确认" : state.surveySchedule ? escapeHtml(state.surveySchedule.templateName) + " · " + escapeHtml(state.surveySchedule.effectiveDate) + " 起" : "今天没有安排问卷。"}</p>` : ""}
             <p class="questionnaire-intro-note">花几分钟，记录一下此刻的感受和最近的经历。</p>
-            <img class="questionnaire-hero" src="./assets/images/问卷调查-插图01.png" alt="问卷插图" />
-            <p role="status">${escapeHtml(state.surveyError || state.surveyNotice)}</p>
+            <img class="questionnaire-hero" src="./assets/images/问卷调查-插图01.png" alt="" />
+            <p role="status">${escapeHtml(state.surveyError || state.surveyNotice || (state.surveySchedule ? "填完后，可以回看这次的回答。" : ""))}</p>
             <button class="questionnaire-primary" id="start-questionnaire" ${state.surveyBusy || state.surveyScheduleLoading ||
               (state.surveyMode === "trial" && !state.surveySchedule && !state.surveyError) ? "disabled" : ""}>${state.surveyError ? "重新加载问卷" : "开始测评"}</button>
             ${state.surveyMode === "trial" && !state.surveySchedule && !state.surveyError ? '<button id="survey-refresh-intro">重新查看日程</button>' : ""}
@@ -371,14 +369,13 @@ function recommend(answers, selected, catalog, seen, ratings, seed = '') {
           <button class="icon-btn" data-route="home">
             <img src="./assets/icons/返回.svg" alt="返回" />
           </button>
-          <strong>EMA 问卷</strong>
+          <h1>填写问卷</h1>
           <span class="questionnaire-spacer"></span>
         </div>
         <div class="questionnaire-form-body">
           <div class="questionnaire-form-intro">
             ${state.surveyMode === "trial" ? `<button type="button" data-help-resources>求助资源</button><p>${escapeHtml(surveyTimeWindow(state.surveyClaim))}</p>` : ""}
-            <h2>请按题目给出的时间范围回答。<br />遇到需要帮助的情况，可以随时打开求助资源。</h2>
-            <img class="questionnaire-corner-fairy" src="./assets/images/Group 2631.png" alt="装饰" />
+            <p>请按每道题的时间范围作答。需要帮助时，可以随时查看求助资源。</p>
           </div>
           <fieldset class="survey-fields" ${state.surveyRequest || state.surveyBusy ? "disabled" : ""}>
           ${visibleQuestions
@@ -426,7 +423,7 @@ function recommend(answers, selected, catalog, seen, ratings, seed = '') {
               max="100"
               step="1"
               value="${value}"
-              placeholder="待作答"
+              placeholder="—"
               inputmode="numeric"
               data-question-number="${question.id}"
               aria-label="${escapeHtml(title)}当前评分"
@@ -469,6 +466,7 @@ function recommend(answers, selected, catalog, seen, ratings, seed = '') {
                   <button
                     type="button"
                     class="questionnaire-choice-item ${value === option ? "active" : ""}"
+                    aria-pressed="${value === option}"
                     data-question-choice="${question.id}"
                     data-option="${escapeHtml(option)}"
                   >
@@ -503,6 +501,7 @@ function recommend(answers, selected, catalog, seen, ratings, seed = '') {
                 <button
                   type="button"
                   class="questionnaire-choice-item ${selected ? "active" : ""}"
+                  aria-pressed="${selected}"
                   data-question-multi="${question.id}"
                   data-option="${escapeHtml(option)}"
                 >
@@ -587,7 +586,7 @@ function recommend(answers, selected, catalog, seen, ratings, seed = '') {
     }
     const summary = row.summary;
     const parts = [header, '<div class="survey-review" data-survey-source="' + escapeHtml(row.source) +
-      '" data-survey-id="' + escapeHtml(row.id) + '"><header class="survey-review-heading"><span>本次填写</span><h1>本次回答已保存。</h1>',
+      '" data-survey-id="' + escapeHtml(row.id) + '"><header class="survey-review-heading"><span>本次填写</span><h1>已为你记录下来</h1>',
       '<p>' + BeijingTime.format(row.createdAt) + '</p></header>'];
     if (row.source === "trial") {
       if (summary.showSupport === true) parts.push('<aside class="survey-support"><h2>需要帮助时</h2><p>如果此刻想找人陪你，可以联系一个你信任的人，也可以在这里查看求助方式。</p><button type="button" data-help-resources>查看求助资源 <span aria-hidden="true">↗</span></button></aside>');
@@ -620,7 +619,7 @@ function recommend(answers, selected, catalog, seen, ratings, seed = '') {
     const renderAnswer = item => {
       const value = Array.isArray(item.value) ? item.value.join("、") : item.value;
       const numeric = typeof value === "number" && Number.isFinite(value);
-      return '<div class="history-summary-row"><span>' + escapeHtml(item.title) + '</span><strong>' +
+      return '<div class="history-summary-row"><span>' + escapeHtml(feelings.has(item.id) || positives.has(item.id) ? item.title.replace(/^此刻[：:]\s*/, "") : item.title) + '</span><strong>' +
         escapeHtml(value ?? "未记录") + (numeric ? '<small> / 100</small>' : '') + '</strong></div>';
     };
     for (const [title, ids] of [["当时的感受", feelings], ["愉快与放松", positives]]) {

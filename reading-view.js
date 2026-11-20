@@ -84,33 +84,33 @@
 function renderContentBackButton(){return '<button type="button" class="icon-btn" id="back-to-answers" aria-label="返回问卷结果"><img src="./assets/icons/返回.svg" alt="返回问卷"></button>';}
 function renderPartnerArticle(item){
 const articleCoverUrl="./assets/images/content-image-cover-clean.png",articleBlocks=getArticleBodyBlocks(item);
+        const title = String(item.title || "").trim();
+        const originalDescription = String(item.description || "").trim();
+        const suffix = originalDescription.slice(title.length);
+        const description = title && originalDescription.startsWith(title) && (!suffix || /^[\s：:，,。—–-]/u.test(suffix))
+          ? suffix.replace(/^[\s：:，,。—–-]+/u, "") : originalDescription;
         const trialArticleBlocks = articleBlocks.filter((block, index) => {
-          if (index !== 0 || block.type !== "paragraph") {
-            return true;
-          }
-          const text = String(block.text || "").trim();
-          return text !== String(item.title || "").trim() && text !== String(item.description || "").trim();
+          if (block.type !== "paragraph") return true;
+          const text = block.text.replace(/^#{1,3}\s+/, "").trim();
+          // Some articles open with the title, a subtitle, then the title again.
+          if (index < 3 && text === title) return false;
+          return index !== 0 || (text !== originalDescription && text !== description);
         });
-        const trialArticleBodyHtml = (trialArticleBlocks.length ? trialArticleBlocks : [{ type: "paragraph", text: "内容尚未完善" }])
+        const trialArticleBodyHtml = (articleBlocks.length ? trialArticleBlocks : [{ type: "paragraph", text: "内容尚未完善" }])
           .map(renderTrialArticleBodyBlock)
           .join("");
         return `
-          <section class="page content-page content-trial-article-page" style="--trial-article-bg: url(&quot;${escapeHtml(articleCoverUrl)}&quot;);">
+          <section class="page content-page content-trial-article-page">
             <div class="content-trial-topbar content-trial-article-topbar">
               ${renderContentBackButton()}
               <div class="content-heading">
                 <strong>练习详情</strong>
-                <span class="therapy-type-tag therapy-type-${escapeHtml(item.tone || "mint")}">${escapeHtml(item.type || "文章")}</span>
               </div>
             </div>
             <header class="content-trial-article-header">
-              <span class="content-trial-article-kicker">${escapeHtml("阅读练习")}</span>
               <h1>${escapeHtml(item.title)}</h1>
-              <p>${escapeHtml(item.description || "")}</p>
-              <div class="content-trial-article-meta">
-                ${item.duration ? `<span>${escapeHtml(item.duration)}</span>` : ""}
-                <span>${escapeHtml(item.type || "文章")}</span>
-              </div>
+              ${description ? `<p>${escapeHtml(description)}</p>` : ""}
+              ${item.duration ? `<div class="content-trial-article-meta"><span>${escapeHtml(item.duration)}</span></div>` : ""}
             </header>
             <article class="content-trial-article-panel">
               <div class="content-article-scroll content-trial-article-body">
